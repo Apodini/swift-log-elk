@@ -4,16 +4,26 @@ import PackageDescription
 
 
 let package = Package(
-    name: "ApodiniTemplate",
+    name: "swift-log-elk",
     products: [
-        .library(name: "ApodiniTemplate", targets: ["ApodiniTemplate"])
+        .library(name: "LoggingELK", targets: ["LoggingELK"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
+    ]
     targets: [
-        .target(name: "ApodiniTemplate"),
-        .testTarget(
-            name: "ApodiniTemplateTests",
+        .target(
+            name: "LoggingELK",
             dependencies: [
-                .target(name: "ApodiniTemplate")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]),
+        ),
+        .testTarget(
+            name: "LoggingELKTests",
+            dependencies: [
+                .target(name: "LoggingELK")
             ]
         )
     ]
