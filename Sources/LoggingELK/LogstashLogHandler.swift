@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import NIO
 import Logging
 import AsyncHTTPClient
 
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
-public struct LogstashLogHandler: LogHandler {
+public struct LogstashLogHandler: LogHandler, EventLoopGroupInjectable {
     private struct LogstashHTTPBody: Encodable {
         let post_date: String
         let loglevel: Logger.Level
@@ -23,13 +24,11 @@ public struct LogstashLogHandler: LogHandler {
         let line: UInt
     }
     
-    //private let httpClient: HTTPClient
     private let label: String
-    private let app: Application
     private let hostname: String
     private let port: Int
-    
-    //private var inFlight: Bool = false
+    private var httpClient: Box<HTTPClient?>? = Box(nil)
+    private var eventLoopGroup: Box<EventLoopGroup?>? = Box(nil)
 
     public var logLevel: Logger.Level = .info
 
@@ -50,16 +49,23 @@ public struct LogstashLogHandler: LogHandler {
         }
     }
 
-    internal init(label: String, app: Application, hostname: String, port: Int) {
+    internal init(label: String, hostname: String, port: Int, eventLoopGroup: EventLoopGroup?) {
         self.label = label
-        self.app = app
         self.hostname = hostname
         self.port = port
+        self.eventLoopGroup?.value = eventLoopGroup
     }
     
     /// Factory that makes a `LogstashLogHandler` to directs its output to Logstash
-    public static func logstashOutput(label: String, app: Application, hostname: String = "127.0.0.1", port: Int = 31311) -> LogstashLogHandler {
-        return LogstashLogHandler(label: label, app: app, hostname: hostname, port: port)
+    public static func logstashOutput(label: String, hostname: String = "127.0.0.1", port: Int = 31311, eventLoopGroup: EventLoopGroup? = nil) -> LogstashLogHandler {
+        // Maybe create default EventLoopGroup like this:
+        //MultiThreadedEventLoopGroup(numberOfThreads: 2)
+        
+        // Possibility to just pass the type of the Logger in the configuration, the other configs (port etc.) seperatly
+        // Fuck, this isn't possible as well since we don't know the LogstashLogger type in Apodinni
+        // BUT: we can put this config in the ApodiniObserve package and then depend on the ELK stuff?
+        
+        return LogstashLogHandler(label: label, hostname: hostname, port: port, eventLoopGroup: eventLoopGroup)
     }
 
     public func log(level: Logger.Level,
@@ -79,6 +85,22 @@ public struct LogstashLogHandler: LogHandler {
 //        defer {
 //            try? httpClient.syncShutdown()
 //        }
+        
+        
+        if self.httpClient?.value == nil {
+            guard let eventLoopGroup = self.eventLoopGroup?.value else {
+                fatalError("EventLoopGroup not initialized!")
+            }
+
+            self.httpClient?.value = HTTPClient(
+                eventLoopGroupProvider: .shared(eventLoopGroup),
+                configuration: HTTPClient.Configuration()
+            )
+        }
+        
+        guard let httpClient = self.httpClient?.value else {
+            fatalError("HTTPClient not initialized!")
+        }
         
         do {
             var request = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
@@ -102,7 +124,7 @@ public struct LogstashLogHandler: LogHandler {
 
             //self.inFlight = true
             
-            self.app.httpClient.execute(request: request).whenComplete { result in
+            httpClient.execute(request: request).whenComplete { result in
                 switch result {
                 case .failure(let error):
                     //self.inFlight = false
@@ -139,5 +161,11 @@ public struct LogstashLogHandler: LogHandler {
                 String(cString: $0.baseAddress!)
             }
         }
+    }
+}
+
+extension LogstashLogHandler {
+    public func inject(eventLoopGroup: EventLoopGroup) {
+        self.eventLoopGroup?.value = eventLoopGroup
     }
 }
