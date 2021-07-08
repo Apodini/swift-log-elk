@@ -61,7 +61,7 @@ jobs:
       run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
     - name: Convert coverage report
       if: matrix.configuration == 'debug'
-      run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniTemplatePackageTests.xctest/Contents/MacOS/ApodiniTemplatePackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
+      run: xcrun llvm-cov export -format="lcov" .build/debug/swift-log-elkPackageTests.xctest/Contents/MacOS/swift-log-elkPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
   linux:

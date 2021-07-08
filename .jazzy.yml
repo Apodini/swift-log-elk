@@ -1,7 +1,7 @@
-module: ApodiniTemplate
-author: Paul Schmiedmayer
+module: LoggingELK
+author: Philipp Zagar & Paul Schmiedmayer
 theme: fullwidth
 output: ./docs
 documentation: ./*.md
 author_url: https://github.com/Apodini
-github_url: https://github.com/Apodini/ApodiniTemplate
+github_url: https://github.com/Apodini/swift-log-elk
