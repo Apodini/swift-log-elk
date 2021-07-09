@@ -16,9 +16,72 @@ public struct LogstashLogHandler: LogHandler {
     private let label: String
     private let hostname: String
     private let port: Int
-    private var httpClient: Box<HTTPClient?>? = Box(nil)
-    private var eventLoopGroup: Box<EventLoopGroup?>? = Box(nil)
-    private var backgroundActivityLogger: Box<Logger?>? = Box(nil)
+    private var httpClient: HTTPClient
+    private var eventLoopGroup: EventLoopGroup
+    private var backgroundActivityLogger: Logger
+    //private var timer: Box<Publishers.Autoconnect<Timer.TimerPublisher>?>? = Box(nil)
+    
+//    private static var uploadInverval: TimeInterval = 10 {
+//        willSet {
+//            timer.schedule(deadline: DispatchTime.now(), repeating: newValue)
+//
+//            //self.backgroundActivityLogger?.value?.debug("Log upload interval has been updated", metadata: ["uploadInterval": .string(String(describing: newValue))])
+//        }
+//    }
+//
+//    private static let timer: DispatchSourceTimer = {
+//        let timer = DispatchSource.makeTimerSource()
+//        timer.setEventHandler(handler: uploadOnSchedule)
+//        if #available(macOS 10.12, *) {
+//            timer.activate()
+//        } else {
+//            timer.resume()
+//        }
+//        return timer
+//    }()
+//
+//    private static let networkHandleQueue = DispatchQueue(label: "LogstashLogHandler.NetworkHandle")
+//
+//    private func setup() {
+//        DispatchQueue.main.async { // Async in case setup before LoggingSystem bootstrap.
+//            self.backgroundActivityLogger?.value?.info("LogstashLogHandler has been setup", metadata: [:])
+//        }
+//    }
+//
+//    private static func upload() {
+//
+//        //assert(logging != nil, "App must setup GoogleCloudLogHandler before upload")
+//
+//        timer.schedule(deadline: DispatchTime.now(), repeating: uploadInterval)
+//    }
+//
+//    private static func uploadOnSchedule() {
+//
+//    }
+    //rivate let test = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common).autoconnect().sink { _ in print("test") }
+    
+//    private let publisher: Box<Timer.OCombine.TimerPublisher?>? = Box(nil)
+//    private let anyCancellables: Box<OpenCombine.AnyCancellable?>? = Box(nil)
+//
+//    // No idea why this doesn't work
+//    private func setup() {
+//        publisher?.value = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common)
+//
+//        anyCancellables?.value = publisher?.value?.autoconnect().sink{ _ in
+//            print("asdf")
+//        }
+//    }
+    
+    /*
+    private let test = Timer   //Timer.publish(every: 5, tolerance: 1, on: .current, in: .common).autoconnect()
+    private var anyCanc = Set<AnyCancellable>()
+    private func setup() {
+        test.sink { _ in
+            print("test")
+        }
+        .store(in: &anyCanc)
+    }
+     */
 
     /// Not sure for what exactly this is necessary, but its mandated by the `LogHandler` protocol
     public var logLevel: Logger.Level = .info
@@ -34,49 +97,33 @@ public struct LogstashLogHandler: LogHandler {
         }
     }
 
-    internal init(label: String, hostname: String, port: Int, eventLoopGroup: EventLoopGroup? = nil, backgroundActivityLogger: Logger? = nil) {
+    internal init(label: String,
+                  hostname: String,
+                  port: Int,
+                  eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
+                  backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler")) {
         self.label = label
         self.hostname = hostname
         self.port = port
-        self.eventLoopGroup?.value = eventLoopGroup
-        self.backgroundActivityLogger?.value = backgroundActivityLogger
+        self.eventLoopGroup = eventLoopGroup
+        self.backgroundActivityLogger = backgroundActivityLogger
         
-        // Initialze HHTP Client - ugly since there are 4 possibilities
-        if let eventLoopGroup = eventLoopGroup {
-            if let backgroundActivityLogger = backgroundActivityLogger {
-                // Existing eventloop, existing logger
-                self.httpClient?.value = HTTPClient(
-                    eventLoopGroupProvider: .shared(eventLoopGroup),
-                    configuration: HTTPClient.Configuration(),
-                    backgroundActivityLogger: backgroundActivityLogger
-                )
-            } else {
-                // Existing eventloop, no logger
-                self.httpClient?.value = HTTPClient(
-                    eventLoopGroupProvider: .shared(eventLoopGroup),
-                    configuration: HTTPClient.Configuration()
-                )
-            }
-        } else {
-            if let backgroundActivityLogger = backgroundActivityLogger {
-                // No eventloop, exisiting logger
-                self.httpClient?.value = HTTPClient(
-                    eventLoopGroupProvider: .createNew,
-                    configuration: HTTPClient.Configuration(),
-                    backgroundActivityLogger: backgroundActivityLogger
-                )
-            } else {
-                // No eventloop, no logger
-                self.httpClient?.value = HTTPClient(
-                    eventLoopGroupProvider: .createNew,
-                    configuration: HTTPClient.Configuration()
-                )
-            }
-        }
+        //setup()
+        
+        // Initialze HHTP Client
+        self.httpClient = HTTPClient(
+            eventLoopGroupProvider: .shared(eventLoopGroup),
+            configuration: HTTPClient.Configuration(),
+            backgroundActivityLogger: backgroundActivityLogger
+        )
     }
     
     /// Factory that makes a `LogstashLogHandler` to directs its output to Logstash
-    public static func logstashOutput(label: String, hostname: String = "127.0.0.1", port: Int = 31311, eventLoopGroup: EventLoopGroup? = nil, backgroundActivityLogger: Logger? = nil) -> LogstashLogHandler {
+    public static func logstashOutput(label: String,
+                                      hostname: String = "127.0.0.1",
+                                      port: Int = 31311,
+                                      eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
+                                      backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler")) -> LogstashLogHandler {
         return LogstashLogHandler(label: label, hostname: hostname, port: port, eventLoopGroup: eventLoopGroup, backgroundActivityLogger: backgroundActivityLogger)
     }
 
@@ -87,10 +134,6 @@ public struct LogstashLogHandler: LogHandler {
                     file: String,
                     function: String,
                     line: UInt) {
-        guard let httpClient = self.httpClient?.value else {
-            fatalError("HTTPClient not initialized!")
-        }
-        
         do {
             /// Create the base HTTP Request
             var request = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
@@ -113,24 +156,7 @@ public struct LogstashLogHandler: LogHandler {
             let unpackedMetadata = Self.unpackMetadata(.dictionary(entryMetadata)) as! [String: Any]
             
             /// Encode the metadata to JSON again
-            let encodedMetadata: Data
-            if #available(macOS 10.15, *) {
-                encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys])
-            } else if #available(macOS 10.13, *) {
-                encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted, .sortedKeys])
-                self.backgroundActivityLogger?.value?.log(level: .warning,
-                                                          "Metadata couldn't be encoded properly since macOS version is too low!",
-                                                          metadata: ["hostname":.string(self.hostname),
-                                                                     "port":.string(String(describing: self.port)),
-                                                                     "label":.string(self.label)])
-            } else {
-                encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted])
-                self.backgroundActivityLogger?.value?.log(level: .warning,
-                                                          "Metadata couldn't be encoded properly since macOS version is too low!",
-                                                          metadata: ["hostname":.string(self.hostname),
-                                                                     "port":.string(String(describing: self.port)),
-                                                                     "label":.string(self.label)])
-            }
+            let encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys])
             
             /// JSON to String
             let stringyfiedMetadata = String(decoding: encodedMetadata, as: UTF8.self)
@@ -150,7 +176,7 @@ public struct LogstashLogHandler: LogHandler {
             httpClient.execute(request: request).whenComplete { result in
                 switch result {
                 case .failure(let error):
-                    self.backgroundActivityLogger?.value?.log(level: .warning,
+                    self.backgroundActivityLogger.log(level: .warning,
                                                               "Error during sending logs to Logstash - \(error)",
                                                               metadata: ["hostname":.string(self.hostname),
                                                                          "port":.string(String(describing: self.port)),
@@ -159,7 +185,7 @@ public struct LogstashLogHandler: LogHandler {
                     if response.status == .ok {
                         print("Success!")  /// TODO: Remove that when development is finished
                     } else {
-                        self.backgroundActivityLogger?.value?.log(level: .warning,
+                        self.backgroundActivityLogger.log(level: .warning,
                                                                   "Error during sending logs to Logstash - \(String(describing: response.status))",
                                                                   metadata: ["hostname":.string(self.hostname),
                                                                              "port":.string(String(describing: self.port)),
@@ -168,7 +194,7 @@ public struct LogstashLogHandler: LogHandler {
                 }
             }
         } catch {
-            self.backgroundActivityLogger?.value?.log(level: .warning,
+            self.backgroundActivityLogger.log(level: .warning,
                                                       "Error during sending logs to Logstash - \(error))",
                                                       metadata: ["hostname":.string(self.hostname),
                                                                  "port":.string(String(describing: self.port)),
@@ -209,63 +235,3 @@ extension LogstashLogHandler {
     }
 }
 
-extension LogstashLogHandler: EventLoopGroupInjectable {
-    public func inject(eventLoopGroup: EventLoopGroup) {
-        self.eventLoopGroup?.value = eventLoopGroup
-        
-        /// If HTTPClient already exists, shut it down gracefully
-        if let httpClient = self.httpClient?.value {
-            do {
-                try httpClient.syncShutdown()
-            } catch {
-                print("Error during HTTPClient shutdown")
-            }
-        }
-        
-        if let backgroundActivityLogger = self.backgroundActivityLogger?.value {
-            // Existing eventloop, existing logger
-            self.httpClient?.value = HTTPClient(
-                eventLoopGroupProvider: .shared(eventLoopGroup),
-                configuration: HTTPClient.Configuration(),
-                backgroundActivityLogger: backgroundActivityLogger
-            )
-        } else {
-            // Existing eventloop, no logger
-            self.httpClient?.value = HTTPClient(
-                eventLoopGroupProvider: .shared(eventLoopGroup),
-                configuration: HTTPClient.Configuration()
-            )
-        }
-    }
-}
-
-extension LogstashLogHandler: BackgroundActivityLoggerInjectable {
-    public func inject(backgroundActivityLogger: Logger) {
-        self.backgroundActivityLogger?.value = backgroundActivityLogger
-        
-        /// If HTTPClient already exists, shut it down gracefully
-        if let httpClient = self.httpClient?.value {
-            do {
-                try httpClient.syncShutdown()
-            } catch {
-                print("Error during HTTPClient shutdown")
-            }
-        }
-        
-        if let eventLoopGroup = self.eventLoopGroup?.value {
-            // Existing eventloop, existing logger
-            self.httpClient?.value = HTTPClient(
-                eventLoopGroupProvider: .shared(eventLoopGroup),
-                configuration: HTTPClient.Configuration(),
-                backgroundActivityLogger: backgroundActivityLogger
-            )
-        } else {
-            // No eventloop, exisiting logger
-            self.httpClient?.value = HTTPClient(
-                eventLoopGroupProvider: .createNew,
-                configuration: HTTPClient.Configuration(),
-                backgroundActivityLogger: backgroundActivityLogger
-            )
-        }
-    }
-}
