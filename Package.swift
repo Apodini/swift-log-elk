@@ -13,18 +13,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
-        .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0"))
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "LoggingELK",
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "OpenCombineDispatch", package: "OpenCombine")
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
         .testTarget(
