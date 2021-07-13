@@ -43,31 +43,15 @@ public struct LogstashLogHandler: LogHandler {
             self.metadata[metadataKey] = newValue
         }
     }
-    
-    /// Factory that makes a `LogstashLogHandler` to directs its output to Logstash
-    public static func logstashOutput(label: String,
-                                      hostname: String = "127.0.0.1",
-                                      port: Int = 31311,
-                                      eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
-                                      backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
-                                      uploadInterval: TimeAmount = TimeAmount.seconds(10),
-                                      maximumLogStorageSize: Int = 1048576) -> LogstashLogHandler {
-        return LogstashLogHandler(label: label,
-                                  hostname: hostname,
-                                  port: port,
-                                  eventLoopGroup: eventLoopGroup,
-                                  backgroundActivityLogger: backgroundActivityLogger,
-                                  uploadInterval: uploadInterval,
-                                  maximumLogStorageSize: maximumLogStorageSize)
-    }
 
-    internal init(label: String,
-                  hostname: String,
-                  port: Int,
-                  eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
-                  backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
-                  uploadInterval: TimeAmount = TimeAmount.seconds(10),
-                  maximumLogStorageSize: Int = 1048576) {
+    /// Creates a `LogstashLogHandler` to directs its output to Logstash
+    public init(label: String,
+                hostname: String = "0.0.0.0",
+                port: Int = 31311,
+                eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
+                backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
+                uploadInterval: TimeAmount = TimeAmount.seconds(10),
+                maximumLogStorageSize: Int = 1048576) {
         self.label = label
         self.hostname = hostname
         self.port = port
