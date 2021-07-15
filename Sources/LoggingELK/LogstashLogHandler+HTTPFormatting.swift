@@ -55,14 +55,7 @@ extension LogstashLogHandler {
                                               metadata: stringyfiedMetadata)
             
             /// Encode body
-            let logData = try JSONEncoder().encode(bodyObject)
-            
-            /// Debug print
-            print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
-            print("Log Data: \(logData.count)")
-            print("Buffer Capacity: \(self.byteBuffer.capacity)")
-            
-            return logData
+            return try JSONEncoder().encode(bodyObject)
         } catch {
             return nil
         }

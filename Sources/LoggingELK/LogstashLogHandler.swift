@@ -29,7 +29,7 @@ public struct LogstashLogHandler: LogHandler {
     @Boxed internal var byteBuffer: ByteBuffer = ByteBuffer()
     
     /// Lock for writing/reading to/from the byteBuffer
-    internal let lock = Lock()
+    internal let lock = ConditionLock(value: false)
     
     //@Boxed private var repeatedTask: RepeatedTask
 
@@ -113,36 +113,49 @@ public struct LogstashLogHandler: LogHandler {
             return
         }
         
-        self.lock.withLock {
-            /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
-            if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
-    //            do {
-                    // TODO: Use the eventloop to schedule this event with 0 delay, also: cancle the old task (need to wait until the wrapper bug is explained to me by paul)
-                    // Else: The request that triggers this upload takes ages to return
-                    /// Trigger the upload immediatly
-                    let _ = scheduleUploadTask(initialDelay: TimeAmount.zero)
-                    //try upload()
-    //            } catch {
-    //                self.backgroundActivityLogger.log(level: .warning,
-    //                                                  "Error during uploading logs if memory limit is exeeded",
-    //                                                  metadata: ["hostname":.string(self.hostname),
-    //                                                             "port":.string(String(describing: self.port)),
-    //                                                             "label":.string(self.label)])
-    //            }
-            }
-            print("Writer got here first")
-            //self.lock.withLock {
-                /// Write size of the log data
-                self.byteBuffer.writeInteger(logData.count)
-                /// Write actual log data to log store
-                self.byteBuffer.writeData(logData)
-                
-                /// To silence "return value unused" warning
-            //    return
-            //}
+        /// Debug print
+        print("OLD")
+        print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
+        print("Log Data: \(logData.count)")
+        print("Buffer Capacity: \(self.byteBuffer.capacity)")
+        
+        /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
+        /// Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
+        guard self.lock.lock(whenValue: false, timeoutSeconds: 1) else {
+            /// If lock couldn't be aquired, don't log the data and just return
+            return
         }
         
+        /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
+        if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
+            // TODO: Use the eventloop to schedule this event with 0 delay, also: cancle the old task (need to wait until the wrapper bug is explained to me by paul)
+            // Else: The request that triggers this upload takes ages to return
+            /// Trigger the upload immediatly
+            let _ = scheduleUploadTask(initialDelay: TimeAmount.zero)
+            
+            /// Unlock with state value "true", indicating that the copying into a temp byte buffer during uploading takes place now
+            self.lock.unlock(withValue: true)
+        } else {
+            /// Unlock regardless of the current state value
+            self.lock.unlock()
+        }
+        
+        /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
+        guard self.lock.lock(whenValue: false, timeoutSeconds: 1) else {
+            /// If lock couldn't be aquired, don't log the data and just return
+            return
+        }
+        
+        /// Write size of the log data
+        self.byteBuffer.writeInteger(logData.count)
+        /// Write actual log data to log store
+        self.byteBuffer.writeData(logData)
+        
+        /// Unlock regardless of the current state value
+        self.lock.unlock()
+        
         /// Debug print
+        print("NEW")
         print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
         print("Buffer Capacity: \(self.byteBuffer.capacity)")
     }

@@ -16,8 +16,6 @@ extension LogstashLogHandler {
     }
     
     private func upload(_ task: RepeatedTask? = nil) throws -> Void {
-        print("Reader got here first")
-        
         /// No log data stored at the moment
         guard self.byteBuffer.readableBytes != 0 else {
             return
@@ -25,17 +23,26 @@ extension LogstashLogHandler {
         
         /// Extract the stored log data to temporary byte buffer
         var tempByteBuffer = ByteBuffer()
-        lock.withLock {
-            tempByteBuffer = ByteBufferAllocator().buffer(capacity: self.byteBuffer.readableBytes)
-            tempByteBuffer.writeBuffer(&self.byteBuffer)
-            
-            /// Reset the byte bugger
-            self.byteBuffer.clear()
-        }
+        
+        /// Lock regardless of the current state value
+        self.lock.lock()
+        
+        /// Copy out the log data into a temporary byte buffer
+        /// This eg. helps to prevent a stalling request if more than the max. buffer size log messages are created DURING uploading of the "old" log data
+        /// This can go on multiple times, since the upload task is then (manually) scheduled multiple times, each task with its own log data that will be uploaded
+        /// This ensures that no log data is lost and the loghandler can manage a huge spike in log data during uploading the "old" log data (but is basically a edge edge case)
+        tempByteBuffer = ByteBufferAllocator().buffer(capacity: self.byteBuffer.readableBytes)
+        tempByteBuffer.writeBuffer(&self.byteBuffer)
+        
+        /// Reset the byte bugger
+        self.byteBuffer.clear()
+        
+        /// Unlock and set the state value to "false", indicating that no copying of data into the temp byte buffer takes place at the moment
+        self.lock.unlock(withValue: false)
         
         /// Read data from temp byte buffer until it doesn't contain any readable byte anymore
         while tempByteBuffer.readableBytes != 0 {
-            sleep(1)
+            sleep(10)
             
             guard let logDataSize: Int = tempByteBuffer.readInteger(), let logData = tempByteBuffer.readSlice(length: logDataSize) else {
                 fatalError("Error reading log data from log storage")
