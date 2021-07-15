@@ -13,8 +13,8 @@ extension LogstashLogHandler {
     private struct LogstashHTTPBody: Encodable {
         let timestamp: String
         let loglevel: Logger.Level
-        let message: String
-        let metadata: String
+        let message: Logger.Message
+        let metadata: Logger.Metadata
     }
     
     internal func createHTTPRequest() -> HTTPClient.Request {
@@ -39,20 +39,13 @@ extension LogstashLogHandler {
         return httpRequest
     }
     
-    internal func encodeLogData(unpackedMetadata: [String: Any], level: Logger.Level, message: Logger.Message) -> Data? {
+    internal func encodeLogData(mergedMetadata: Logger.Metadata, level: Logger.Level, message: Logger.Message) -> Data? {
         do {
-            /// Encode the metadata to JSON again
-            let encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys])
-            
-            /// JSON to String
-            let stringyfiedMetadata = String(decoding: encodedMetadata, as: UTF8.self)
-            //print(stringyfiedMetadata)
-            
             /// Create HTTP Request body
             let bodyObject = LogstashHTTPBody(timestamp: timestamp(),
                                               loglevel: level,
-                                              message: message.description,
-                                              metadata: stringyfiedMetadata)
+                                              message: message,
+                                              metadata: mergedMetadata)
             
             /// Encode body
             return try JSONEncoder().encode(bodyObject)
@@ -61,3 +54,30 @@ extension LogstashLogHandler {
         }
     }
 }
+
+/// Make `Logger.MetadataValue` conform to `Encodable`
+extension Logger.MetadataValue: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case let .string(string):
+            try container.encode(string)
+        case let .stringConvertible(stringConvertible):
+            try container.encode(stringConvertible.description)
+        case let .dictionary(dictionary):
+            try container.encode(dictionary)
+        case let .array(array):
+            try container.encode(array)
+        }
+    }
+}
+
+/// Make `Logger.Message` conform to `Encodable`
+extension Logger.Message: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.description)
+    }
+}
+
+

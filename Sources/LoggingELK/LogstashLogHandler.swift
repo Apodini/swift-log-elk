@@ -31,7 +31,8 @@ public struct LogstashLogHandler: LogHandler {
     /// Lock for writing/reading to/from the byteBuffer
     internal let lock = ConditionLock(value: false)
     
-    //@Boxed private var repeatedTask: RepeatedTask
+    /// Make optional, then write nil to it
+    //@Boxed internal var repeatedTask: RepeatedTask
 
     /// Not sure for what exactly this is necessary, but its mandated by the `LogHandler` protocol
     public var logLevel: Logger.Level = .info
@@ -71,7 +72,7 @@ public struct LogstashLogHandler: LogHandler {
         )
         
         /// Initialize ByteBuffer to store logs
-        self.byteBuffer = ByteBufferAllocator().buffer(capacity: self.minimumLogStorageSize)
+        self.byteBuffer = ByteBufferAllocator().buffer(capacity: minimumLogStorageSize)
         /// Gets automatically substituted to something like that
         //self._byteBuffer = Boxed(wrappedValue: allocator.buffer(capacity: self.maximumLogStorageSize))
         //self._byteBuffer.wrappedValue = allocator.buffer(capacity: self.maximumLogStorageSize)
@@ -82,7 +83,7 @@ public struct LogstashLogHandler: LogHandler {
         /// Setup of the repetitive uploading of the logs to Logstash
         // If the return type here can be cancled, then cancle the scheduled eventloop and send the
         // RepeatedTask offers a cancable method
-        let _ = scheduleUploadTask(initialDelay: self.uploadInterval)
+        let _ = scheduleUploadTask(initialDelay: uploadInterval)
         //self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
         //self.repeatedTask = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
         //self._repeatedTask = Boxed(wrappedValue: self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload))
@@ -99,25 +100,16 @@ public struct LogstashLogHandler: LogHandler {
         /// Merge metadata
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
         
-        /// Unpack the metadata values to a normal dictionary
-        let unpackedMetadata = Self.unpackMetadata(.dictionary(mergedMetadata)) as! [String: Any]
-        
         /// Encode the logdata
-        guard let logData = encodeLogData(unpackedMetadata: unpackedMetadata, level: level, message: message) else {
+        guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
             self.backgroundActivityLogger.log(level: .warning,
-                                              "Error during encoding log data)",
+                                              "Error during encoding log data",
                                               metadata: ["hostname":.string(self.hostname),
                                                          "port":.string(String(describing: self.port)),
                                                          "label":.string(self.label)])
             
             return
         }
-        
-        /// Debug print
-        print("OLD")
-        print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
-        print("Log Data: \(logData.count)")
-        print("Buffer Capacity: \(self.byteBuffer.capacity)")
         
         /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
         /// Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
@@ -128,9 +120,9 @@ public struct LogstashLogHandler: LogHandler {
         
         /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
         if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
-            // TODO: Use the eventloop to schedule this event with 0 delay, also: cancle the old task (need to wait until the wrapper bug is explained to me by paul)
-            // Else: The request that triggers this upload takes ages to return
-            /// Trigger the upload immediatly
+            // TODO: cancle the old repeating upload task
+            
+            /// Trigger the upload task immediatly
             let _ = scheduleUploadTask(initialDelay: TimeAmount.zero)
             
             /// Unlock with state value "true", indicating that the copying into a temp byte buffer during uploading takes place now
@@ -153,10 +145,5 @@ public struct LogstashLogHandler: LogHandler {
         
         /// Unlock regardless of the current state value
         self.lock.unlock()
-        
-        /// Debug print
-        print("NEW")
-        print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
-        print("Buffer Capacity: \(self.byteBuffer.capacity)")
     }
 }

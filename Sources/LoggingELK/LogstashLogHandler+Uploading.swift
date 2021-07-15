@@ -11,7 +11,7 @@ import AsyncHTTPClient
 
 extension LogstashLogHandler {
     internal func scheduleUploadTask(initialDelay: TimeAmount) -> RepeatedTask {
-        // Also store the cancelable here so that it can be cancled during manual uploading
+        // Also return the cancelable here so that it can be cancled during manual uploading
         self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: initialDelay, delay: uploadInterval, notifying: nil, upload)
     }
     
@@ -42,8 +42,6 @@ extension LogstashLogHandler {
         
         /// Read data from temp byte buffer until it doesn't contain any readable byte anymore
         while tempByteBuffer.readableBytes != 0 {
-            sleep(10)
-            
             guard let logDataSize: Int = tempByteBuffer.readInteger(), let logData = tempByteBuffer.readSlice(length: logDataSize) else {
                 fatalError("Error reading log data from log storage")
             }
