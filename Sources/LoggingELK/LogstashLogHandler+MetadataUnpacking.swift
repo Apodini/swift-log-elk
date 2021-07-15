@@ -9,6 +9,8 @@ import Foundation
 import Logging
 
 // We probably need to handle the memory leakage from here, see in the git repo
+// Instruments debugger
+// Probably use 
 extension LogstashLogHandler {
     static func unpackMetadata(_ value: Logger.MetadataValue) -> Any {
         /// Based on the core-foundation implementation of `JSONSerialization.isValidObject`, but optimized to reduce the amount of comparisons done per validation.

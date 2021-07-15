@@ -14,21 +14,24 @@ import AsyncHTTPClient
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
 public struct LogstashLogHandler: LogHandler {
-    private let label: String
-    private let hostname: String
-    private let port: Int
-    private let httpClient: HTTPClient
-    private var httpRequest: Box<HTTPClient.Request?> = Box(nil)
-    private let eventLoopGroup: EventLoopGroup
-    private let backgroundActivityLogger: Logger
-    private let uploadInterval: TimeAmount
+    internal let label: String
+    internal let hostname: String
+    internal let port: Int
     
-    private let maximumLogStorageSize: Int
-    private var currentLogStorageSize: Box<Int> = Box(0)
-    private let storageSizeLock = Lock()
+    internal let httpClient: HTTPClient
+    @Boxed internal var httpRequest: HTTPClient.Request? = nil
     
-    private var logs: Box<Set<Data>> = Box(Set<Data>())
-    private let lock = Lock()
+    internal let eventLoopGroup: EventLoopGroup
+    internal let backgroundActivityLogger: Logger
+    internal let uploadInterval: TimeAmount
+    internal let minimumLogStorageSize: Int
+    
+    @Boxed internal var byteBuffer: ByteBuffer = ByteBuffer()
+    
+    /// Lock for writing/reading to/from the byteBuffer
+    internal let lock = Lock()
+    
+    //@Boxed private var repeatedTask: RepeatedTask
 
     /// Not sure for what exactly this is necessary, but its mandated by the `LogHandler` protocol
     public var logLevel: Logger.Level = .info
@@ -51,91 +54,39 @@ public struct LogstashLogHandler: LogHandler {
                 eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
                 backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
                 uploadInterval: TimeAmount = TimeAmount.seconds(10),
-                maximumLogStorageSize: Int = 1048576) {
+                minimumLogStorageSize: Int = 1048576) {
         self.label = label
         self.hostname = hostname
         self.port = port
         self.eventLoopGroup = eventLoopGroup
         self.backgroundActivityLogger = backgroundActivityLogger
         self.uploadInterval = uploadInterval
-        self.maximumLogStorageSize = maximumLogStorageSize
+        self.minimumLogStorageSize = minimumLogStorageSize
         
-        /// Initialze HHTP Client
+        /// Initialize HTTP Client
         self.httpClient = HTTPClient(
             eventLoopGroupProvider: .shared(eventLoopGroup),
             configuration: HTTPClient.Configuration(),
             backgroundActivityLogger: backgroundActivityLogger
         )
         
-        do {
-            /// Create the base HTTP Request
-            self.httpRequest.value = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
-        } catch {
-            fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
-        }
+        /// Initialize ByteBuffer to store logs
+        self.byteBuffer = ByteBufferAllocator().buffer(capacity: self.minimumLogStorageSize)
+        /// Gets automatically substituted to something like that
+        //self._byteBuffer = Boxed(wrappedValue: allocator.buffer(capacity: self.maximumLogStorageSize))
+        //self._byteBuffer.wrappedValue = allocator.buffer(capacity: self.maximumLogStorageSize)
         
-        /// Set headers that always stay consistent over all requests
-        self.httpRequest.value?.headers.add(name: "Content-Type", value: "application/json")
-        self.httpRequest.value?.headers.add(name: "Accept", value: "application/json")
-        /// Keep-alive header to keep the connection open
-        self.httpRequest.value?.headers.add(name: "Connection", value: "keep-alive")
-        self.httpRequest.value?.headers.add(name: "Keep-Alive", value: "timeout=30, max=120")
+        /// Prepare the HTTP Request
+        self.httpRequest = createHTTPRequest()
         
         /// Setup of the repetitive uploading of the logs to Logstash
-        self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
-    }
-    
-    private func upload(_ task: RepeatedTask? = nil) throws -> Void {
-        /// Log set empty
-        guard !self.logs.value.isEmpty else {
-            return
-        }
-        
-        /// Extract values out of log set and remove the values from the original set
-        var copyLogs = Set<Data>()
-        lock.withLock {
-            /// Extract values
-            copyLogs.formUnion(self.logs.value)
-            /// Remove original values on the log set of the struct
-            self.logs.value.removeAll()
-            
-            /// Reset current size of log storage set
-            self.storageSizeLock.withLock {
-                self.currentLogStorageSize.value = 0
-            }
-        }
-        
-        copyLogs.forEach { logData in
-            /// HTTP Request not initialized
-            guard var httpRequest = self.httpRequest.value else {
-                return
-            }
-            
-            /// Set the saved logdata to the body of the request
-            httpRequest.body = .data(logData)
-            
-            /// Execute HTTP request
-            self.httpClient.execute(request: httpRequest).whenComplete { result in
-                switch result {
-                case .failure(let error):
-                    self.backgroundActivityLogger.log(level: .warning,
-                                                      "Error during sending logs to Logstash - \(error)",
-                                                      metadata: ["hostname":.string(self.hostname),
-                                                                 "port":.string(String(describing: self.port)),
-                                                                 "label":.string(self.label)])
-                case .success(let response):
-                    if response.status == .ok {
-                        print("Success!")  /// TODO: Remove that when development is finished
-                    } else {
-                        self.backgroundActivityLogger.log(level: .warning,
-                                                          "Error during sending logs to Logstash - \(String(describing: response.status))",
-                                                          metadata: ["hostname":.string(self.hostname),
-                                                                     "port":.string(String(describing: self.port)),
-                                                                     "label":.string(self.label)])
-                    }
-                }
-            }
-        }
+        // If the return type here can be cancled, then cancle the scheduled eventloop and send the
+        // RepeatedTask offers a cancable method
+        let _ = scheduleUploadTask(initialDelay: self.uploadInterval)
+        //self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
+        //self.repeatedTask = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
+        //self._repeatedTask = Boxed(wrappedValue: self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload))
+        //self._repeatedTask.wrappedValue = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
     }
 
     public func log(level: Logger.Level,
@@ -145,102 +96,54 @@ public struct LogstashLogHandler: LogHandler {
                     file: String,
                     function: String,
                     line: UInt) {
-        /// Merge the metadata
-        let entryMetadata: Logger.Metadata
-        if let parameterMetadata = metadata {
-            entryMetadata = self.metadata.merging(parameterMetadata) { $1 }
-                                         .merging(["location":.string(formatLocation(file: file, function: function, line: line))]) { $1 }
-        } else {
-            entryMetadata = self.metadata.merging(["location":.string(formatLocation(file: file, function: function, line: line))]) { $1 }
-        }
+        /// Merge metadata
+        let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
         
         /// Unpack the metadata values to a normal dictionary
-        let unpackedMetadata = Self.unpackMetadata(.dictionary(entryMetadata)) as! [String: Any]
-        /// The completly encoded data
-        var logData: Data
+        let unpackedMetadata = Self.unpackMetadata(.dictionary(mergedMetadata)) as! [String: Any]
         
-        do {
-            /// Encode the metadata to JSON again
-            let encodedMetadata = try JSONSerialization.data(withJSONObject: unpackedMetadata, options: [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys])
-            
-            /// JSON to String
-            let stringyfiedMetadata = String(decoding: encodedMetadata, as: UTF8.self)
-            //print(stringyfiedMetadata)
-            
-            /// Create HTTP Request body
-            let bodyObject = LogstashHTTPBody(timestamp: timestamp(),
-                                              loglevel: level,
-                                              message: message.description,
-                                              metadata: stringyfiedMetadata)
-            
-            /// Encode body
-            logData = try JSONEncoder().encode(bodyObject)
-            
-            /// Increment current size of log storage set
-            self.storageSizeLock.withLock {
-                self.currentLogStorageSize.value += logData.count
-            }
-        } catch {
+        /// Encode the logdata
+        guard let logData = encodeLogData(unpackedMetadata: unpackedMetadata, level: level, message: message) else {
             self.backgroundActivityLogger.log(level: .warning,
-                                              "Error during encoding log data - \(error))",
+                                              "Error during encoding log data)",
                                               metadata: ["hostname":.string(self.hostname),
                                                          "port":.string(String(describing: self.port)),
                                                          "label":.string(self.label)])
+            
             return
         }
-            
+        
         self.lock.withLock {
-            /// Save finished body to the log set
-            self.logs.value.insert(logData)
-            
-            /// To silence "return value unused" warning
-            return
-        }
-
-        /// Check if the maximum storage size is exeeded, then upload the logs manually
-        if self.currentLogStorageSize.value > self.maximumLogStorageSize {
-            do {
-                try upload()
-            } catch {
-                self.backgroundActivityLogger.log(level: .warning,
-                                                  "Error uploading logs if memory limit is exeeded",
-                                                  metadata: ["hostname":.string(self.hostname),
-                                                             "port":.string(String(describing: self.port)),
-                                                             "label":.string(self.label)])
+            /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
+            if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
+    //            do {
+                    // TODO: Use the eventloop to schedule this event with 0 delay, also: cancle the old task (need to wait until the wrapper bug is explained to me by paul)
+                    // Else: The request that triggers this upload takes ages to return
+                    /// Trigger the upload immediatly
+                    let _ = scheduleUploadTask(initialDelay: TimeAmount.zero)
+                    //try upload()
+    //            } catch {
+    //                self.backgroundActivityLogger.log(level: .warning,
+    //                                                  "Error during uploading logs if memory limit is exeeded",
+    //                                                  metadata: ["hostname":.string(self.hostname),
+    //                                                             "port":.string(String(describing: self.port)),
+    //                                                             "label":.string(self.label)])
+    //            }
             }
+            print("Writer got here first")
+            //self.lock.withLock {
+                /// Write size of the log data
+                self.byteBuffer.writeInteger(logData.count)
+                /// Write actual log data to log store
+                self.byteBuffer.writeData(logData)
+                
+                /// To silence "return value unused" warning
+            //    return
+            //}
         }
-    }
-
-    private func timestamp() -> String {
-        var buffer = [Int8](repeating: 0, count: 255)
-        var timestamp = time(nil)
-        let localTime = localtime(&timestamp)
-        strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime)
-        return buffer.withUnsafeBufferPointer {
-            $0.withMemoryRebound(to: CChar.self) {
-                String(cString: $0.baseAddress!)
-            }
-        }
+        
+        /// Debug print
+        print("Readable Bytes from Buffer: \(self.byteBuffer.readableBytes)")
+        print("Buffer Capacity: \(self.byteBuffer.capacity)")
     }
 }
-
-extension LogstashLogHandler {
-    private struct LogstashHTTPBody: Encodable {
-        let timestamp: String
-        let loglevel: Logger.Level
-        let message: String
-        let metadata: String
-    }
-    
-    private func conciseSourcePath(_ path: String) -> String {
-        return path.split(separator: "/")
-            .split(separator: "Sources")
-            .last?
-            .joined(separator: "/") ?? path
-    }
-    
-    private func formatLocation(file: String, function: String, line: UInt) -> String {
-        "\(self.conciseSourcePath(file)) ▶ \(function) ▶ \(line)"
-    }
-}
-
