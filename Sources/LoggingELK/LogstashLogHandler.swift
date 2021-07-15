@@ -31,8 +31,8 @@ public struct LogstashLogHandler: LogHandler {
     /// Lock for writing/reading to/from the byteBuffer
     internal let lock = ConditionLock(value: false)
     
-    /// Make optional, then write nil to it
-    //@Boxed internal var repeatedTask: RepeatedTask
+    /// Holds the `RepeatedTask` returned by scheduling a function on the eventloop, eg. to cancel the task
+    @Boxed internal var uploadTask: RepeatedTask? = nil
 
     /// Not sure for what exactly this is necessary, but its mandated by the `LogHandler` protocol
     public var logLevel: Logger.Level = .info
@@ -54,8 +54,8 @@ public struct LogstashLogHandler: LogHandler {
                 port: Int = 31311,
                 eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
                 backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
-                uploadInterval: TimeAmount = TimeAmount.seconds(10),
-                minimumLogStorageSize: Int = 1048576) {
+                uploadInterval: TimeAmount = TimeAmount.seconds(3),
+                minimumLogStorageSize: Int = 1_048_576) {
         self.label = label
         self.hostname = hostname
         self.port = port
@@ -83,7 +83,7 @@ public struct LogstashLogHandler: LogHandler {
         /// Setup of the repetitive uploading of the logs to Logstash
         // If the return type here can be cancled, then cancle the scheduled eventloop and send the
         // RepeatedTask offers a cancable method
-        let _ = scheduleUploadTask(initialDelay: uploadInterval)
+        self.uploadTask = scheduleUploadTask(initialDelay: uploadInterval)
         //self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
         //self.repeatedTask = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
         //self._repeatedTask = Boxed(wrappedValue: self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload))
@@ -111,6 +111,11 @@ public struct LogstashLogHandler: LogHandler {
             return
         }
         
+        print("OLD")
+        print("Log Size: \(logData.count)")
+        print("Readable bytes: \(self.byteBuffer.readableBytes)")
+        print("Buffer size: \(self.byteBuffer.capacity)")
+        
         /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
         /// Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
         guard self.lock.lock(whenValue: false, timeoutSeconds: 1) else {
@@ -120,10 +125,11 @@ public struct LogstashLogHandler: LogHandler {
         
         /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
         if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
-            // TODO: cancle the old repeating upload task
+            /// Cancle the old upload task
+            self.uploadTask?.cancel(promise: nil)
             
             /// Trigger the upload task immediatly
-            let _ = scheduleUploadTask(initialDelay: TimeAmount.zero)
+            self.uploadTask = scheduleUploadTask(initialDelay: TimeAmount.zero)
             
             /// Unlock with state value "true", indicating that the copying into a temp byte buffer during uploading takes place now
             self.lock.unlock(withValue: true)
@@ -145,5 +151,9 @@ public struct LogstashLogHandler: LogHandler {
         
         /// Unlock regardless of the current state value
         self.lock.unlock()
+        
+        print("NEW")
+        print("Readable bytes: \(self.byteBuffer.readableBytes)")
+        print("Buffer size: \(self.byteBuffer.capacity)")
     }
 }

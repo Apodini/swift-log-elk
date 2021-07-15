@@ -22,7 +22,7 @@ extension LogstashLogHandler {
         
         do {
             /// Create the base HTTP Request
-            httpRequest = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
+            httpRequest = try HTTPClient.Request(url: "http://\(self.hostname):\(self.port)", method: .POST)
         } catch {
             fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
         }
@@ -32,9 +32,13 @@ extension LogstashLogHandler {
         httpRequest.headers.add(name: "Accept", value: "application/json")
         /// Keep-alive header to keep the connection open
         httpRequest.headers.add(name: "Connection", value: "keep-alive")
-        // Maybe make this timeout also configurable
-        // Of course the connection shouldn't be open for 3h, configure a threshhold etc.
-        httpRequest.headers.add(name: "Keep-Alive", value: "timeout=30, max=120")
+        /// If upload interval is below 10 seconds, dynamically adapt the Keep-Alive timeout
+        /// Timeout specifies the desired time interval, Max specifies the maximum number of requests going over this one connection
+        if (self.uploadInterval.nanoseconds / 1_000_000_000) <= 10 {
+            httpRequest.headers.add(name: "Keep-Alive", value: "timeout=\(self.uploadInterval.nanoseconds / 1_000_000_000 * 3), max=100")
+        } else {
+            httpRequest.headers.add(name: "Keep-Alive", value: "timeout=30, max=100")
+        }
         
         return httpRequest
     }
