@@ -111,14 +111,14 @@ public struct LogstashLogHandler: LogHandler {
             return
         }
         
-        print("OLD")
-        print("Log Size: \(logData.count)")
-        print("Readable bytes: \(self.byteBuffer.readableBytes)")
-        print("Buffer size: \(self.byteBuffer.capacity)")
+//        print("OLD")
+//        print("Log Size: \(logData.count)")
+//        print("Readable bytes: \(self.byteBuffer.readableBytes)")
+//        print("Buffer size: \(self.byteBuffer.capacity)")
         
         /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
         /// Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
-        guard self.lock.lock(whenValue: false, timeoutSeconds: 1) else {
+        guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             /// If lock couldn't be aquired, don't log the data and just return
             return
         }
@@ -139,7 +139,7 @@ public struct LogstashLogHandler: LogHandler {
         }
         
         /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
-        guard self.lock.lock(whenValue: false, timeoutSeconds: 1) else {
+        guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             /// If lock couldn't be aquired, don't log the data and just return
             return
         }
@@ -152,8 +152,8 @@ public struct LogstashLogHandler: LogHandler {
         /// Unlock regardless of the current state value
         self.lock.unlock()
         
-        print("NEW")
-        print("Readable bytes: \(self.byteBuffer.readableBytes)")
-        print("Buffer size: \(self.byteBuffer.capacity)")
+//        print("NEW")
+//        print("Readable bytes: \(self.byteBuffer.readableBytes)")
+//        print("Buffer size: \(self.byteBuffer.capacity)")
     }
 }
