@@ -17,6 +17,15 @@ extension LogstashLogHandler {
         let metadata: Logger.Metadata
     }
     
+    private static var jsonEncoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.dataEncodingStrategy = .base64
+        encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: "+inf", negativeInfinity: "-inf", nan: "NaN")
+        return encoder
+    }
+    
     internal func createHTTPRequest() -> HTTPClient.Request {
         var httpRequest: HTTPClient.Request
         
@@ -52,7 +61,7 @@ extension LogstashLogHandler {
                                               metadata: mergedMetadata)
             
             /// Encode body
-            return try JSONEncoder().encode(bodyObject)
+            return try Self.jsonEncoder.encode(bodyObject)
         } catch {
             return nil
         }
