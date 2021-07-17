@@ -6,6 +6,7 @@
 
 import NIO
 
+
 extension TimeAmount {
     public var rawSeconds: Double {
         Double(self.nanoseconds) / Double(1_000_000_000)

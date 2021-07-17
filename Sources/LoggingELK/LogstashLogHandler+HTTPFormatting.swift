@@ -8,6 +8,8 @@
 import Foundation
 import Logging
 import AsyncHTTPClient
+import NIO
+
 
 extension LogstashLogHandler {
     private struct LogstashHTTPBody: Encodable {
@@ -26,25 +28,26 @@ extension LogstashLogHandler {
         return encoder
     }
     
-    internal func createHTTPRequest() -> HTTPClient.Request {
+    
+    func createHTTPRequest() -> HTTPClient.Request {
         var httpRequest: HTTPClient.Request
         
         do {
-            /// Create the base HTTP Request
-            httpRequest = try HTTPClient.Request(url: "http://\(self.hostname):\(self.port)", method: .POST)
+            // Create the base HTTP Request
+            httpRequest = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
         } catch {
             fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
         }
         
-        /// Set headers that always stay consistent over all requests
+        // Set headers that always stay consistent over all requests
         httpRequest.headers.add(name: "Content-Type", value: "application/json")
         httpRequest.headers.add(name: "Accept", value: "application/json")
-        /// Keep-alive header to keep the connection open
+        // Keep-alive header to keep the connection open
         httpRequest.headers.add(name: "Connection", value: "keep-alive")
-        /// If upload interval is below 10 seconds, dynamically adapt the Keep-Alive timeout
-        /// Timeout specifies the desired time interval, Max specifies the maximum number of requests going over this one connection
-        if (self.uploadInterval.nanoseconds / 1_000_000_000) <= 10 {
-            httpRequest.headers.add(name: "Keep-Alive", value: "timeout=\(self.uploadInterval.nanoseconds / 1_000_000_000 * 3), max=100")
+        // If upload interval is below 10 seconds, dynamically adapt the Keep-Alive timeout
+        // Timeout specifies the desired time interval, Max specifies the maximum number of requests going over this one connection
+        if (uploadInterval.nanoseconds / 1_000_000_000) <= 10 {
+            httpRequest.headers.add(name: "Keep-Alive", value: "timeout=\(uploadInterval.nanoseconds / 1_000_000_000 * 3), max=100")
         } else {
             httpRequest.headers.add(name: "Keep-Alive", value: "timeout=30, max=100")
         }
@@ -52,21 +55,24 @@ extension LogstashLogHandler {
         return httpRequest
     }
     
-    internal func encodeLogData(mergedMetadata: Logger.Metadata, level: Logger.Level, message: Logger.Message) -> Data? {
+    func encodeLogData(mergedMetadata: Logger.Metadata, level: Logger.Level, message: Logger.Message) -> Data? {
         do {
-            /// Create HTTP Request body
-            let bodyObject = LogstashHTTPBody(timestamp: timestamp(),
-                                              loglevel: level,
-                                              message: message,
-                                              metadata: mergedMetadata)
+            // Create HTTP Request body
+            let bodyObject = LogstashHTTPBody(
+                timestamp: timestamp,
+                loglevel: level,
+                message: message,
+                metadata: mergedMetadata
+            )
             
-            /// Encode body
+            // Encode body
             return try Self.jsonEncoder.encode(bodyObject)
         } catch {
             return nil
         }
     }
 }
+
 
 /// Make `Logger.MetadataValue` conform to `Encodable`
 extension Logger.MetadataValue: Encodable {
@@ -84,6 +90,7 @@ extension Logger.MetadataValue: Encodable {
         }
     }
 }
+
 
 /// Make `Logger.Message` conform to `Encodable`
 extension Logger.Message: Encodable {

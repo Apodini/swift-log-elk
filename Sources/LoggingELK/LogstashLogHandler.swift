@@ -11,34 +11,27 @@ import NIOConcurrencyHelpers
 import Logging
 import AsyncHTTPClient
 
+
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
 public struct LogstashLogHandler: LogHandler {
-    internal let label: String
-    internal let hostname: String
-    internal let port: Int
-    
-    internal let httpClient: HTTPClient
-    @Boxed internal var httpRequest: HTTPClient.Request? = nil
-    
-    internal let eventLoopGroup: EventLoopGroup
-    internal let backgroundActivityLogger: Logger
-    internal let uploadInterval: TimeAmount
-    internal let minimumLogStorageSize: Int
-    
-    @Boxed internal var byteBuffer: ByteBuffer = ByteBuffer()
-    
-    /// Lock for writing/reading to/from the byteBuffer
-    internal let lock = ConditionLock(value: false)
-    
+    let label: String
+    let hostname: String
+    let port: Int
+    let httpClient: HTTPClient
+    let eventLoopGroup: EventLoopGroup
+    let backgroundActivityLogger: Logger
+    let uploadInterval: TimeAmount
+    let minimumLogStorageSize: Int
+    @Boxed var byteBuffer: ByteBuffer
     /// Holds the `RepeatedTask` returned by scheduling a function on the eventloop, eg. to cancel the task
-    @Boxed internal var uploadTask: RepeatedTask? = nil
-
-    /// Not sure for what exactly this is necessary, but its mandated by the `LogHandler` protocol
+    @Boxed private(set) var uploadTask: RepeatedTask?
+    /// Lock for writing/reading to/from the byteBuffer
+    let lock = ConditionLock(value: false)
     public var logLevel: Logger.Level = .info
-    
     public var metadata = Logger.Metadata()
-
+    
+    
     public subscript(metadataKey metadataKey: String) -> Logger.Metadata.Value? {
         get {
             return self.metadata[metadataKey]
@@ -47,113 +40,110 @@ public struct LogstashLogHandler: LogHandler {
             self.metadata[metadataKey] = newValue
         }
     }
-
+    
+    
     /// Creates a `LogstashLogHandler` to directs its output to Logstash
-    public init(label: String,
-                hostname: String = "0.0.0.0",
-                port: Int = 31311,
-                eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
-                backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
-                uploadInterval: TimeAmount = TimeAmount.seconds(3),
-                minimumLogStorageSize: Int = 1_048_576) {
+    public init(
+        label: String,
+        hostname: String = "0.0.0.0",
+        port: Int = 31311,
+        eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
+        backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
+        uploadInterval: TimeAmount = TimeAmount.seconds(3),
+        minimumLogStorageSize: Int = 1_048_576
+    ) {
         self.label = label
         self.hostname = hostname
         self.port = port
-        self.eventLoopGroup = eventLoopGroup
-        self.backgroundActivityLogger = backgroundActivityLogger
-        self.uploadInterval = uploadInterval
-        self.minimumLogStorageSize = minimumLogStorageSize
         
-        /// Initialize HTTP Client
         self.httpClient = HTTPClient(
             eventLoopGroupProvider: .shared(eventLoopGroup),
             configuration: HTTPClient.Configuration(),
             backgroundActivityLogger: backgroundActivityLogger
         )
         
-        /// Initialize ByteBuffer to store logs
-        self.byteBuffer = ByteBufferAllocator().buffer(capacity: minimumLogStorageSize)
-        /// Gets automatically substituted to something like that
-        //self._byteBuffer = Boxed(wrappedValue: allocator.buffer(capacity: self.maximumLogStorageSize))
-        //self._byteBuffer.wrappedValue = allocator.buffer(capacity: self.maximumLogStorageSize)
         
-        /// Prepare the HTTP Request
-        self.httpRequest = createHTTPRequest()
+        self.eventLoopGroup = eventLoopGroup
+        self.backgroundActivityLogger = backgroundActivityLogger
+        self.uploadInterval = uploadInterval
+        self.minimumLogStorageSize = minimumLogStorageSize
+        self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: minimumLogStorageSize))
         
-        /// Setup of the repetitive uploading of the logs to Logstash
-        // If the return type here can be cancled, then cancle the scheduled eventloop and send the
-        // RepeatedTask offers a cancable method
-        self.uploadTask = scheduleUploadTask(initialDelay: uploadInterval)
-        //self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
-        //self.repeatedTask = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
-        //self._repeatedTask = Boxed(wrappedValue: self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload))
-        //self._repeatedTask.wrappedValue = self.eventLoopGroup.next().scheduleRepeatedTask(initialDelay: uploadInterval, delay: uploadInterval, notifying: nil, upload)
+        self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
     }
-
-    public func log(level: Logger.Level,
-                    message: Logger.Message,
-                    metadata: Logger.Metadata?,
-                    source: String,
-                    file: String,
-                    function: String,
-                    line: UInt) {
-        /// Merge metadata
+    
+    
+    public func log(
+        level: Logger.Level,
+        message: Logger.Message,
+        metadata: Logger.Metadata?,
+        source: String,
+        file: String,
+        function: String,
+        line: UInt
+    ) {
+        // Merge metadata
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
         
-        /// Encode the logdata
+        // Encode the logdata
         guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
-            self.backgroundActivityLogger.log(level: .warning,
-                                              "Error during encoding log data",
-                                              metadata: ["hostname":.string(self.hostname),
-                                                         "port":.string(String(describing: self.port)),
-                                                         "label":.string(self.label)])
-            
+            self.backgroundActivityLogger.log(
+                level: .warning,
+                "Error during encoding log data",
+                metadata: [
+                    "hostname":.string(self.hostname),
+                    "port":.string(String(describing: self.port)),
+                    "label":.string(self.label)
+                ]
+            )
             return
         }
         
-//        print("OLD")
-//        print("Log Size: \(logData.count)")
-//        print("Readable bytes: \(self.byteBuffer.readableBytes)")
-//        print("Buffer size: \(self.byteBuffer.capacity)")
+        #warning("TODO: Remove the print logs")
+        // print("OLD")
+        // print("Log Size: \(logData.count)")
+        // print("Readable bytes: \(self.byteBuffer.readableBytes)")
+        // print("Buffer size: \(self.byteBuffer.capacity)")
         
-        /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
-        /// Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
+        // Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
+        // Helps to prevent a second logging during the time it takes for the upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
         guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             /// If lock couldn't be aquired, don't log the data and just return
             return
         }
         
-        /// Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
+        // Check if the maximum storage size would be exeeded. If that's the case, trigger the uploading of the logs manually
         if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
-            /// Cancle the old upload task
+            // Cancle the old upload task
             self.uploadTask?.cancel(promise: nil)
             
-            /// Trigger the upload task immediatly
+            // Trigger the upload task immediatly
             self.uploadTask = scheduleUploadTask(initialDelay: TimeAmount.zero)
             
-            /// Unlock with state value "true", indicating that the copying into a temp byte buffer during uploading takes place now
+            // Unlock with state value "true", indicating that the copying into a temp byte buffer during uploading takes place now
             self.lock.unlock(withValue: true)
         } else {
-            /// Unlock regardless of the current state value
+            // Unlock regardless of the current state value
             self.lock.unlock()
         }
         
-        /// Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
+        // Lock only if state value is "false", indicating that no operations on the temp byte buffer during uploading are taking place
         guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             /// If lock couldn't be aquired, don't log the data and just return
             return
         }
         
-        /// Write size of the log data
+        // Write size of the log data
         self.byteBuffer.writeInteger(logData.count)
-        /// Write actual log data to log store
+        // Write actual log data to log store
         self.byteBuffer.writeData(logData)
         
-        /// Unlock regardless of the current state value
+        // Unlock regardless of the current state value
         self.lock.unlock()
         
-//        print("NEW")
-//        print("Readable bytes: \(self.byteBuffer.readableBytes)")
-//        print("Buffer size: \(self.byteBuffer.capacity)")
+        #warning("TODO: Remove the print logs")
+        // print("NEW")
+        // print("Readable bytes: \(self.byteBuffer.readableBytes)")
+        // print("Buffer size: \(self.byteBuffer.capacity)")
     }
 }

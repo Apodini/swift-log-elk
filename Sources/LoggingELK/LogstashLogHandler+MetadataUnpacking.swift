@@ -8,13 +8,18 @@
 import Foundation
 import Logging
 
-// We probably need to handle the memory leakage from here, see in the git repo
-// Instruments debugger
-// Probably use 
+
+#warning(
+"""
+We probably need to handle the memory leakage from here, see in the git repo
+Instruments debugger
+Probably use
+"""
+)
 extension LogstashLogHandler {
     static func unpackMetadata(_ value: Logger.MetadataValue) -> Any {
-        /// Based on the core-foundation implementation of `JSONSerialization.isValidObject`, but optimized to reduce the amount of comparisons done per validation.
-        /// https://github.com/apple/swift-corelibs-foundation/blob/9e505a94e1749d329563dac6f65a32f38126f9c5/Foundation/JSONSerialization.swift#L52
+        // Based on the core-foundation implementation of `JSONSerialization.isValidObject`, but optimized to reduce the amount of comparisons done per validation.
+        // https://github.com/apple/swift-corelibs-foundation/blob/9e505a94e1749d329563dac6f65a32f38126f9c5/Foundation/JSONSerialization.swift#L52
         func isValidJSONValue(_ value: CustomStringConvertible) -> Bool {
             if value is Int || value is Bool || value is NSNull ||
                 (value as? Double)?.isFinite ?? false ||
