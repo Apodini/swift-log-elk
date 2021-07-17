@@ -34,7 +34,7 @@ public struct LogstashLogHandler: LogHandler {
     
     public subscript(metadataKey metadataKey: String) -> Logger.Metadata.Value? {
         get {
-            return self.metadata[metadataKey]
+            self.metadata[metadataKey]
         }
         set {
             self.metadata[metadataKey] = newValue
@@ -73,7 +73,7 @@ public struct LogstashLogHandler: LogHandler {
     }
     
     
-    public func log(
+    public func log( // swiftlint:disable:this function_parameter_count
         level: Logger.Level,
         message: Logger.Message,
         metadata: Logger.Metadata?,
@@ -91,9 +91,9 @@ public struct LogstashLogHandler: LogHandler {
                 level: .warning,
                 "Error during encoding log data",
                 metadata: [
-                    "hostname":.string(self.hostname),
-                    "port":.string(String(describing: self.port)),
-                    "label":.string(self.label)
+                    "hostname": .string(self.hostname),
+                    "port": .string(String(describing: self.port)),
+                    "label": .string(self.label)
                 ]
             )
             return

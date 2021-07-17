@@ -99,5 +99,3 @@ extension Logger.Message: Encodable {
         try container.encode(self.description)
     }
 }
-
-

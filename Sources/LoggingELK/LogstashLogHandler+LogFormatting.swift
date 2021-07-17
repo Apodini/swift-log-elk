@@ -10,6 +10,7 @@ import Logging
 
 
 extension LogstashLogHandler {
+    #warning("Do we need to use this unsafe memory access here? Can we also use a `DateFormatter` here?")
     var timestamp: String {
         var buffer = [Int8](repeating: 0, count: 255)
         var timestamp = time(nil)
@@ -17,7 +18,7 @@ extension LogstashLogHandler {
         strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime)
         return buffer.withUnsafeBufferPointer {
             $0.withMemoryRebound(to: CChar.self) {
-                String(cString: $0.baseAddress!)
+                String(cString: $0.baseAddress!) // swiftlint:disable:this force_unwrapping
             }
         }
     }
@@ -34,7 +35,7 @@ extension LogstashLogHandler {
     
     
     private func conciseSourcePath(_ path: String) -> String {
-        return path.split(separator: "/")
+        path.split(separator: "/")
             .split(separator: "Sources")
             .last?
             .joined(separator: "/") ?? path

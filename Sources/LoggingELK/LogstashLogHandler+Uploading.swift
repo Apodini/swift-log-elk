@@ -5,10 +5,9 @@
 //  Created by Philipp Zagar on 15.07.21.
 //
 
-import NIO
-import NIOConcurrencyHelpers
 import AsyncHTTPClient
 import NIO
+import NIOConcurrencyHelpers
 
 
 extension LogstashLogHandler {
@@ -17,7 +16,7 @@ extension LogstashLogHandler {
         eventLoopGroup.next().scheduleRepeatedTask(initialDelay: initialDelay, delay: uploadInterval, notifying: nil, upload)
     }
     
-    private func upload(_ task: RepeatedTask? = nil) throws -> Void {
+    private func upload(_ task: RepeatedTask? = nil) throws {
         // No log data stored at the moment
         guard self.byteBuffer.readableBytes != 0 else {
             return
@@ -60,9 +59,9 @@ extension LogstashLogHandler {
                         level: .warning,
                         "Error during sending logs to Logstash - \(error)",
                         metadata: [
-                            "hostname":.string(self.hostname),
-                            "port":.string(String(describing: self.port)),
-                            "label":.string(self.label)
+                            "hostname": .string(self.hostname),
+                            "port": .string(String(describing: self.port)),
+                            "label": .string(self.label)
                         ]
                     )
                 case .success(let response):
@@ -74,9 +73,9 @@ extension LogstashLogHandler {
                             level: .warning,
                             "Error during sending logs to Logstash - \(String(describing: response.status))",
                             metadata: [
-                                "hostname":.string(self.hostname),
-                                "port":.string(String(describing: self.port)),
-                                "label":.string(self.label)
+                                "hostname": .string(self.hostname),
+                                "port": .string(String(describing: self.port)),
+                                "label": .string(self.label)
                             ]
                         )
                     }
