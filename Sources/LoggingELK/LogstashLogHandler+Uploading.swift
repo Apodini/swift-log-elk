@@ -52,7 +52,13 @@ extension LogstashLogHandler {
                 fatalError("Error reading log data from byte buffer")
             }
 
-            var httpRequest = createHTTPRequest()
+            var httpRequest: HTTPClient.Request
+
+            if self.httpRequest != nil {
+                httpRequest = self.httpRequest!
+            } else {
+                httpRequest = createHTTPRequest()
+            }
 
             // Set the saved logdata to the body of the request
             httpRequest.body = .byteBuffer(logData)

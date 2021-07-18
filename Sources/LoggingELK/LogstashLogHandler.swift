@@ -19,7 +19,7 @@ public struct LogstashLogHandler: LogHandler {
     let port: Int
 
     let httpClient: HTTPClient
-    // @Boxed var httpRequest: HTTPClient.Request?
+    @Boxed var httpRequest: HTTPClient.Request?
 
     let eventLoopGroup: EventLoopGroup
     let backgroundActivityLogger: Logger
