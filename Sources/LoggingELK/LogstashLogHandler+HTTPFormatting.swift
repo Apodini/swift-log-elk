@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import NIO
 import Logging
 import AsyncHTTPClient
 
@@ -48,9 +49,9 @@ extension LogstashLogHandler {
         // If upload interval is below 10 seconds, dynamically adapt the Keep-Alive timeout
         // Timeout specifies the desired time interval, Max specifies the maximum number
         // of requests going over this one connection
-        if (uploadInterval.nanoseconds / 1_000_000_000) <= 10 {
+        if uploadInterval <= TimeAmount.seconds(10) {
             httpRequest.headers.add(name: "Keep-Alive",
-                                    value: "timeout=\(uploadInterval.nanoseconds / 1_000_000_000 * 3), max=100")
+                                    value: "timeout=\(Int((uploadInterval.rawSeconds * 3).rounded(.toNearestOrAwayFromZero))), max=100")
         } else {
             httpRequest.headers.add(name: "Keep-Alive",
                                     value: "timeout=30, max=100")

@@ -13,7 +13,11 @@ extension LogstashLogHandler {
     func scheduleUploadTask(initialDelay: TimeAmount) -> RepeatedTask {
         eventLoopGroup
             .next()
-            .scheduleRepeatedTask(initialDelay: initialDelay, delay: uploadInterval, notifying: nil, upload)
+            .scheduleRepeatedTask(
+                initialDelay: initialDelay,
+                delay: uploadInterval,
+                notifying: nil, upload
+            )
     }
 
     private func upload(_ task: RepeatedTask? = nil) throws {
@@ -73,10 +77,7 @@ extension LogstashLogHandler {
                                                                  "port": .string(String(describing: self.port)),
                                                                  "label": .string(self.label)])
                 case .success(let response):
-                    if response.status == .ok {
-                        #warning("TODO: Remove that when development is finished")
-                        print("Success!")
-                    } else {
+                    if response.status != .ok {
                         self.backgroundActivityLogger.log(
                             level: .warning,
                             "Error during sending logs to Logstash - \(String(describing: response.status))",

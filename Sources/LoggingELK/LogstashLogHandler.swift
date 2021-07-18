@@ -46,7 +46,11 @@ public struct LogstashLogHandler: LogHandler {
         }
     }
 
-    /// Creates a `LogstashLogHandler` to directs its output to Logstash
+    /// Creates a `LogstashLogHandler` that directs its output to Logstash
+    /// Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called
+    /// Therefore, the `backgroundActivityLogger` uses the default `StreamLogHandler.standardOutput` `LogHandler`
+    /// If not, in case of an error occuring error in the logging backend, the `backgroundActivityLogger` will call the `LogstashLogHandler` backend,
+    /// resulting in an infinite recursion and to a crash. Sadly, there is no way to check the type of the used backend of the `backgroundActivityLogger` at runtime
     public init(label: String,
                 hostname: String = "0.0.0.0",
                 port: Int = 31311,
