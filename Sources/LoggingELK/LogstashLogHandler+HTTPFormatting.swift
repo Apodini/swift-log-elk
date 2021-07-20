@@ -87,7 +87,7 @@ extension LogstashLogHandler {
     }
 }
 
-/// Make `Logger.MetadataValue` conform to `Encodable`
+/// Make `Logger.MetadataValue` conform to `Encodable` and `Decodable`
 extension Logger.MetadataValue: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
@@ -116,12 +116,15 @@ extension Logger.MetadataValue: Codable {
         } else if let dictionary = try? container.decode(Logger.Metadata.self) {
             self = .dictionary(dictionary)
         } else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Encountered unexpected JSON values"))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: decoder.codingPath,
+                                      debugDescription: "Encountered unexpected JSON values")
+            )
         }
     }
 }
 
-/// Make `Logger.Message` conform to `Encodable`
+/// Make `Logger.Message` conform to `Encodable` and `Decodable`
 extension Logger.Message: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
@@ -137,7 +140,10 @@ extension Logger.Message: Codable {
         } else if let string = try? container.decode(String.self) {
             self = .init(stringLiteral: string)
         } else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Encountered unexpected JSON values"))
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: decoder.codingPath,
+                                      debugDescription: "Encountered unexpected JSON values")
+            )
         }
     }
 }

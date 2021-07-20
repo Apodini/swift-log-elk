@@ -4,11 +4,13 @@ import NIO
 @testable import Logging
 
 final class LoggingELKTests: XCTestCase {
-    private var logstashHandler: LogstashLogHandler!
-    private var logger: Logger!
+    private var logstashHandler: LogstashLogHandler!    // swiftlint:disable:this implicitly_unwrapped_optional
+    private var logger: Logger!                         // swiftlint:disable:this implicitly_unwrapped_optional
     
     /// Setup of the necessary logging backend `LogstashLogHandler` and bootstrap the `LoggingSystem` once for the entire test class
     override func setUp() {
+        super.setUp()
+        
         // Set high uploadInterval so that the actual uploading never happens
         self.logstashHandler = LogstashLogHandler(label: "logstash-test",
                                                   backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
@@ -40,7 +42,8 @@ final class LoggingELKTests: XCTestCase {
     func testSimpleLogging() {
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
         
-        self.logger.error(Logger.Message(stringLiteral: self.randomString(length: 10)), metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
+        self.logger.error(Logger.Message(stringLiteral: self.randomString(length: 10)),
+                          metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes > 0)
     }
@@ -50,7 +53,8 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
         
         // Since default log level is .info, therefore .trace isn't logged
-        self.logger.trace(Logger.Message(stringLiteral: self.randomString(length: 10)), metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
+        self.logger.trace(Logger.Message(stringLiteral: self.randomString(length: 10)),
+                          metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
     }
@@ -89,7 +93,7 @@ final class LoggingELKTests: XCTestCase {
         let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
-            self.randomString(length: 10):  .dictionary(
+            self.randomString(length: 10): .dictionary(
                                                 [
                                                     self.randomString(length: 10): .dictionary(
                                                         [
@@ -210,7 +214,7 @@ final class LoggingELKTests: XCTestCase {
         ]
         
         // Set logger metadata
-        self.logger[metadataKey: logMetadataLogger.first!.key] = logMetadataLogger.first!.value
+        self.logger[metadataKey: logMetadataLogger.first!.key] = logMetadataLogger.first!.value     // swiftlint:disable:this force_unwrapping
         // Set metadata for specific log entry via passing the metadata in the function call
         self.logger.info(logMessage, metadata: logMetadataFunction)
         
@@ -231,7 +235,7 @@ final class LoggingELKTests: XCTestCase {
         var httpBodyMetadata = logHTTPBody.metadata
         httpBodyMetadata.removeValue(forKey: "location")
         // Metadata of the log entry must be equal to the merged metadata of the logger and the function
-        XCTAssertEqual(httpBodyMetadata, logMetadataLogger.merging(logMetadataFunction) { (_, new) in new })
+        XCTAssertEqual(httpBodyMetadata, logMetadataLogger.merging(logMetadataFunction) { _, new in new })
     }
     
     
