@@ -1,7 +1,7 @@
 # swift-log-elk
 
 ![Swift5.0+](https://img.shields.io/badge/Swift-5.0%2B-orange.svg?style=flat)
-[![release](https://img.shields.io/github/v/release/Apodini/swift-log-elk.svg?color=blue)](https://github.com/Apodini/swift-log-elk/releases)
+[![release](https://img.shields.io/github/v/release/Apodini/swift-log-elk.svg?include_prereleases&color=blue)](https://github.com/Apodini/swift-log-elk/releases)
 [![codecov](https://codecov.io/gh/Apodini/swift-log-elk/branch/develop/graph/badge.svg?token=M9a8FsTExH)](https://codecov.io/gh/Apodini/swift-log-elk)
 [![jazzy](https://raw.githubusercontent.com/Apodini/swift-log-elk/gh-pages/badge.svg)](https://apodini.github.io/swift-log-elk/)
 [![Build and Test](https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml)
