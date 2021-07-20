@@ -7,13 +7,16 @@
 [![Build and Test](https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Apodini/swift-log-elk/blob/master/LICENSE)
 
-### **swift-log-elk is a logging backend library for Apple's logging API defined in swift-log**s
+### **swift-log-elk is a logging backend library for Apple's swift-log**
+
+The swift-log-elk library provides a logging backend for Apple's [apple/swift-log](https://github.com/apple/swift-log/) package (which basically just defines a proper logging API). The log entries are properly formatted, cached, and then uploaded via HTTP to [elastic/logstash](https://github.com/elastic/logstash), which allows for further processing in its pipeline, storing the logs in ElasticSearch [elastic/elasticsearch](https://github.com/elastic/elasticsearch), and visualize them in [elastic/kibana](https://github.com/elastic/kibana).
 
 ## Features
 - Written completly in Swift
 - Supports both Darwin (macOS) and Linux platforms
 - Uploads the log data automatically to Logstash (eg. the ELK stack)
 - Caches the created log entries and sends them either periodically or when exceeding a certain configurable memory threshold to Logstash
+- Converts the logging metadata to a JSON representation, which allows to query them (eg. filter after a specific parameter in Kibana)
 - Logs itself via a background activity logger
 
 ## Requirements
