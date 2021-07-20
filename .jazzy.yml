@@ -1,6 +1,7 @@
 module: LoggingELK
 author: Philipp Zagar & Paul Schmiedmayer
 theme: fullwidth
+min_acl: private
 output: ./docs
 documentation: ./*.md
 author_url: https://github.com/Apodini
