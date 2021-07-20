@@ -5,7 +5,6 @@
 //  Created by Philipp Zagar on 15.07.21.
 //
 
-import Foundation
 import Logging
 
 extension LogstashLogHandler {

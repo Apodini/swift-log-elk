@@ -5,7 +5,6 @@
 //  Created by Philipp Zagar on 26.06.21.
 //
 
-import Foundation
 import NIO
 import NIOConcurrencyHelpers
 import Logging

@@ -27,23 +27,16 @@ extension LogstashLogHandler {
 
         var tempByteBuffer = ByteBuffer()
 
-        // Lock regardless of the current state value
         self.byteBufferLock.lock()
 
-        // Copy out the log data into a temporary byte buffer
-        // This eg. helps to prevent a stalling request if more than the max. buffer size
-        // log messages are created DURING uploading of the "old" log data
-        // This can go on multiple times, since the upload task is then (manually) scheduled
-        // multiple times, each task with its own log data that will be uploaded
-        // This ensures that no log data is lost and the loghandler can manage a huge spike
-        // in log data during uploading the "old" log data (but is basically a edge edge case)
+        // Copy log data into a temporary byte buffer
+        // This helps to prevent a stalling request if more than the max. buffer size
+        // log messages are created during uploading of the "old" log data
         tempByteBuffer = ByteBufferAllocator().buffer(capacity: self.byteBuffer.readableBytes)
         tempByteBuffer.writeBuffer(&self.byteBuffer)
 
         self.byteBuffer.clear()
 
-        // Unlock and set the state value to "false", indicating that no copying of data
-        // into the temp byte buffer takes place at the moment
         self.byteBufferLock.unlock(withValue: false)
 
         // Read data from temp byte buffer until it doesn't contain any readable bytes anymore
