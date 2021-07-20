@@ -22,7 +22,7 @@ final class LoggingELKTests: XCTestCase {
         Self.logger = Logger(label: "test")
     }
     
-    ///
+    /// Clear the internal state of the logging backend `LogstashLogHandler` after each test case
     override func tearDown() {
         super.tearDown()
         
@@ -55,7 +55,7 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertTrue(Self.logstashHandler.byteBuffer.capacity > 1000)
     }
     
-    func testByteBufferDataSimpleMetadata() {
+    func testSimpleMetadata() {
         let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
         let logMetadata: Logger.Metadata = [Self.randomString(length: 10): .string(Self.randomString(length: 10))]
         
@@ -80,7 +80,7 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertEqual(httpBodyMetadata, logMetadata)
     }
     
-    func testByteBufferDataComplexMetadata1() {
+    func testComplexMetadata() {
         let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
@@ -130,7 +130,7 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertEqual(httpBodyMetadata, logMetadata)
     }
     
-    func testByteBufferDataComplexMetadata2() {
+    func testEmptyMetadata() {
         let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
@@ -160,7 +160,7 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertEqual(httpBodyMetadata, logMetadata)
     }
     
-    func testByteBufferDataComplexMetadata3() {
+    func testCustomStringConvertibleMetadata() {
         let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
@@ -191,19 +191,6 @@ final class LoggingELKTests: XCTestCase {
             "thisisatest": .string("")
         ]
         XCTAssertEqual(httpBodyMetadata, expectedLogMetadata)
-    }
-    
-    func testByteBufferTooLargeLogEntry() {
-        // Log data entry is larger than the size of the byte buffer (1024 byte)
-        Self.logger.info(Logger.Message(stringLiteral: Self.randomString(length: 10)),
-                         metadata:
-                            [
-                                Self.randomString(length: 10): .string(Self.randomString(length: 1000))
-                            ]
-        )
-        
-        // Goal is that "A single log entry is larger than the configured log storage size" error is printed on stdout
-        // But sadly quite hard to test
     }
     
     func testMetadataMerging() {
@@ -240,6 +227,19 @@ final class LoggingELKTests: XCTestCase {
         httpBodyMetadata.removeValue(forKey: "location")
         // Metadata of the log entry must be equal to the merged metadata of the logger and the function
         XCTAssertEqual(httpBodyMetadata, logMetadataLogger.merging(logMetadataFunction) { (_, new) in new })
+    }
+    
+    func testTooLargeLogEntry() {
+        // Log data entry is larger than the size of the byte buffer (1024 byte)
+        Self.logger.info(Logger.Message(stringLiteral: Self.randomString(length: 10)),
+                         metadata:
+                            [
+                                Self.randomString(length: 10): .string(Self.randomString(length: 1000))
+                            ]
+        )
+        
+        // Goal is that "A single log entry is larger than the configured log storage size" error is printed on stdout
+        // But sadly quite hard to test
     }
     
     private static func randomString(length: Int) -> String {
