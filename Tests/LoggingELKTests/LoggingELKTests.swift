@@ -4,22 +4,27 @@ import NIO
 @testable import Logging
 
 final class LoggingELKTests: XCTestCase {
-    private static var logstashHandler: LogstashLogHandler!
-    private static var logger: Logger!
+    private var logstashHandler: LogstashLogHandler!
+    private var logger: Logger!
     
     /// Setup of the necessary logging backend `LogstashLogHandler` and bootstrap the `LoggingSystem` once for the entire test class
-    override class func setUp() {
+    override func setUp() {
         // Set high uploadInterval so that the actual uploading never happens
-        Self.logstashHandler = LogstashLogHandler(label: "logstash-test", uploadInterval: TimeAmount.seconds(1000), minimumLogStorageSize: 1000)
+        self.logstashHandler = LogstashLogHandler(label: "logstash-test",
+                                                  backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
+                                                                                   factory: StreamLogHandler.standardOutput),
+                                                  uploadInterval: TimeAmount.seconds(1000),
+                                                  minimumLogStorageSize: 1000)
         
         // Cancle the actual uploading to Logstash
-        Self.logstashHandler.uploadTask?.cancel(promise: nil)
+        self.logstashHandler.uploadTask?.cancel(promise: nil)
         
-        LoggingSystem.bootstrap { _ in
-            Self.logstashHandler
+        // Use .bootstrapInternal to be able to bootstrap the logging backend multiple times
+        LoggingSystem.bootstrapInternal { _ in
+            self.logstashHandler
         }
         
-        Self.logger = Logger(label: "test")
+        self.logger = Logger(label: "test")
     }
     
     /// Clear the internal state of the logging backend `LogstashLogHandler` after each test case
@@ -27,42 +32,42 @@ final class LoggingELKTests: XCTestCase {
         super.tearDown()
         
         // Clear metadata
-        Self.logstashHandler.metadata.removeAll()
+        self.logstashHandler.metadata.removeAll()
         // Clear the bytebuffer after each test run
-        Self.logstashHandler.byteBuffer.clear()
+        self.logstashHandler.byteBuffer.clear()
     }
     
     func testSimpleLogging() {
-        XCTAssertTrue(Self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
         
-        Self.logger.error(Logger.Message(stringLiteral: Self.randomString(length: 10)), metadata: [Self.randomString(length: 10): Logger.MetadataValue.string(Self.randomString(length: 10))])
+        self.logger.error(Logger.Message(stringLiteral: self.randomString(length: 10)), metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
-        XCTAssertTrue(Self.logstashHandler.byteBuffer.readableBytes > 0)
+        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes > 0)
     }
     
     /// Default log level is .info, so logs with level .trace won't be logged at all
     func testDefaultLogLevel() {
-        XCTAssertTrue(Self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
         
         // Since default log level is .info, therefore .trace isn't logged
-        Self.logger.trace(Logger.Message(stringLiteral: Self.randomString(length: 10)), metadata: [Self.randomString(length: 10): Logger.MetadataValue.string(Self.randomString(length: 10))])
+        self.logger.trace(Logger.Message(stringLiteral: self.randomString(length: 10)), metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
-        XCTAssertTrue(Self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
     }
     
     /// Byte buffer must be at least the passed byte size
     func testByteBufferSize() {
-        XCTAssertTrue(Self.logstashHandler.byteBuffer.capacity > 1000)
+        XCTAssertTrue(self.logstashHandler.byteBuffer.capacity > 1000)
     }
     
     func testSimpleMetadata() {
-        let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
-        let logMetadata: Logger.Metadata = [Self.randomString(length: 10): .string(Self.randomString(length: 10))]
+        let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
+        let logMetadata: Logger.Metadata = [self.randomString(length: 10): .string(self.randomString(length: 10))]
         
-        Self.logger.error(logMessage, metadata: logMetadata)
+        self.logger.error(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = Self.logstashHandler.byteBuffer.readInteger(),
-              let logData = Self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
+              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -81,22 +86,22 @@ final class LoggingELKTests: XCTestCase {
     }
     
     func testComplexMetadata() {
-        let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
+        let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
-            Self.randomString(length: 10):  .dictionary(
+            self.randomString(length: 10):  .dictionary(
                                                 [
-                                                    Self.randomString(length: 10): .dictionary(
+                                                    self.randomString(length: 10): .dictionary(
                                                         [
-                                                            Self.randomString(length: 10): .string(Self.randomString(length: 10)),
-                                                            Self.randomString(length: 10): .array(
+                                                            self.randomString(length: 10): .string(self.randomString(length: 10)),
+                                                            self.randomString(length: 10): .array(
                                                                 [
-                                                                    .string(Self.randomString(length: 10)),
+                                                                    .string(self.randomString(length: 10)),
                                                                     .dictionary(
                                                                         [
-                                                                            Self.randomString(length: 10): .array(
+                                                                            self.randomString(length: 10): .array(
                                                                                 [
-                                                                                    .string(Self.randomString(length: 10))
+                                                                                    .string(self.randomString(length: 10))
                                                                                 ]
                                                                             )
                                                                         ]
@@ -109,10 +114,10 @@ final class LoggingELKTests: XCTestCase {
                                             )
         ]
         
-        Self.logger.info(logMessage, metadata: logMetadata)
+        self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = Self.logstashHandler.byteBuffer.readInteger(),
-              let logData = Self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
+              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -131,18 +136,18 @@ final class LoggingELKTests: XCTestCase {
     }
     
     func testEmptyMetadata() {
-        let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
+        let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
-            Self.randomString(length: 10): .string(""),
-            Self.randomString(length: 10): .array([]),
-            Self.randomString(length: 10): .dictionary([:])
+            self.randomString(length: 10): .string(""),
+            self.randomString(length: 10): .array([]),
+            self.randomString(length: 10): .dictionary([:])
         ]
         
-        Self.logger.info(logMessage, metadata: logMetadata)
+        self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = Self.logstashHandler.byteBuffer.readInteger(),
-              let logData = Self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
+              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -161,16 +166,16 @@ final class LoggingELKTests: XCTestCase {
     }
     
     func testCustomStringConvertibleMetadata() {
-        let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
+        let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
         let logMetadata: Logger.Metadata =
         [
             "thisisatest": .stringConvertible("")
         ]
         
-        Self.logger.info(logMessage, metadata: logMetadata)
+        self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = Self.logstashHandler.byteBuffer.readInteger(),
-              let logData = Self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
+              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -194,23 +199,23 @@ final class LoggingELKTests: XCTestCase {
     }
     
     func testMetadataMerging() {
-        let logMessage = Logger.Message(stringLiteral: Self.randomString(length: 10))
+        let logMessage = Logger.Message(stringLiteral: self.randomString(length: 10))
         let logMetadataLogger: Logger.Metadata =
         [
-            Self.randomString(length: 10): .string(Self.randomString(length: 10))
+            self.randomString(length: 10): .string(self.randomString(length: 10))
         ]
         let logMetadataFunction: Logger.Metadata =
         [
-            Self.randomString(length: 10): .string(Self.randomString(length: 10))
+            self.randomString(length: 10): .string(self.randomString(length: 10))
         ]
         
         // Set logger metadata
-        Self.logger[metadataKey: logMetadataLogger.first!.key] = logMetadataLogger.first!.value
+        self.logger[metadataKey: logMetadataLogger.first!.key] = logMetadataLogger.first!.value
         // Set metadata for specific log entry via passing the metadata in the function call
-        Self.logger.info(logMessage, metadata: logMetadataFunction)
+        self.logger.info(logMessage, metadata: logMetadataFunction)
         
-        guard let logDataSize: Int = Self.logstashHandler.byteBuffer.readInteger(),
-              let logData = Self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
+              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -229,20 +234,22 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertEqual(httpBodyMetadata, logMetadataLogger.merging(logMetadataFunction) { (_, new) in new })
     }
     
+    
     func testTooLargeLogEntry() {
         // Log data entry is larger than the size of the byte buffer (1024 byte)
-        Self.logger.info(Logger.Message(stringLiteral: Self.randomString(length: 10)),
+        self.logger.info(Logger.Message(stringLiteral: self.randomString(length: 10)),
                          metadata:
                             [
-                                Self.randomString(length: 10): .string(Self.randomString(length: 1000))
+                                self.randomString(length: 10): .string(self.randomString(length: 1000))
                             ]
         )
         
         // Goal is that "A single log entry is larger than the configured log storage size" error is printed on stdout
         // But sadly quite hard to test
     }
+     
     
-    private static func randomString(length: Int) -> String {
+    private func randomString(length: Int) -> String {
         let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return String((0..<length).map { _ in letters.randomElement() ?? "x" })
     }

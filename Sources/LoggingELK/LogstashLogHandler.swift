@@ -49,7 +49,7 @@ public struct LogstashLogHandler: LogHandler {
                 hostname: String = "0.0.0.0",
                 port: Int = 31311,
                 eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
-                backgroundActivityLogger: Logger = Logger(label: "BackgroundActivityLogstashHandler"),
+                backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
                 uploadInterval: TimeAmount = TimeAmount.seconds(3),
                 minimumLogStorageSize: Int = 1_048_576) {
         self.label = label
