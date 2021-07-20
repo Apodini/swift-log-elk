@@ -26,3 +26,4 @@ jobs:
       with:
         personal_access_token: ${{ secrets.ACCESS_TOKEN }}
         config: .jazzy.yml
+        args: --min-acl private
