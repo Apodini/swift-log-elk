@@ -13,7 +13,6 @@ extension LogstashLogHandler {
                        file: String,
                        function: String,
                        line: UInt) -> Logger.Metadata {
-        // Merge metadata
         var mergedMetadata = self.metadata.merging(passedMetadata ?? [:]) { $1 }
         // Add code location to metdata
         mergedMetadata["location"] = .string(formatLocation(file: file, function: function, line: line))

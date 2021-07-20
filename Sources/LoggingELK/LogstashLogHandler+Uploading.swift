@@ -21,16 +21,14 @@ extension LogstashLogHandler {
     }
 
     private func upload(_ task: RepeatedTask? = nil) throws {
-        // No log data stored at the moment
         guard self.byteBuffer.readableBytes != 0 else {
             return
         }
 
-        // Extract the stored log data to temporary byte buffer
         var tempByteBuffer = ByteBuffer()
 
         // Lock regardless of the current state value
-        self.lock.lock()
+        self.byteBufferLock.lock()
 
         // Copy out the log data into a temporary byte buffer
         // This eg. helps to prevent a stalling request if more than the max. buffer size
@@ -42,12 +40,11 @@ extension LogstashLogHandler {
         tempByteBuffer = ByteBufferAllocator().buffer(capacity: self.byteBuffer.readableBytes)
         tempByteBuffer.writeBuffer(&self.byteBuffer)
 
-        // Reset the byte buffer
         self.byteBuffer.clear()
 
         // Unlock and set the state value to "false", indicating that no copying of data
         // into the temp byte buffer takes place at the moment
-        self.lock.unlock(withValue: false)
+        self.byteBufferLock.unlock(withValue: false)
 
         // Read data from temp byte buffer until it doesn't contain any readable bytes anymore
         while tempByteBuffer.readableBytes != 0 {
@@ -64,10 +61,8 @@ extension LogstashLogHandler {
                 httpRequest = createHTTPRequest()
             }
 
-            // Set the saved logdata to the body of the request
             httpRequest.body = .byteBuffer(logData)
 
-            // Execute HTTP request
             self.httpClient.execute(request: httpRequest).whenComplete { result in
                 switch result {
                 case .failure(let error):

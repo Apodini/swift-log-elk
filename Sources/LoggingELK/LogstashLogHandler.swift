@@ -17,21 +17,16 @@ public struct LogstashLogHandler: LogHandler {
     let label: String
     let hostname: String
     let port: Int
-
-    let httpClient: HTTPClient
-    @Boxed var httpRequest: HTTPClient.Request?
-
     let eventLoopGroup: EventLoopGroup
     let backgroundActivityLogger: Logger
     let uploadInterval: TimeAmount
     let minimumLogStorageSize: Int
 
+    let httpClient: HTTPClient
+    @Boxed var httpRequest: HTTPClient.Request?
+
     @Boxed var byteBuffer: ByteBuffer
-
-    /// Lock for writing/reading to/from the byteBuffer
-    let lock = ConditionLock(value: false)
-
-    /// Holds the `RepeatedTask` returned by scheduling a function on the eventloop, eg. to cancel the task
+    let byteBufferLock = ConditionLock(value: false)
     @Boxed private(set) var uploadTask: RepeatedTask?
 
     public var logLevel: Logger.Level = .info
@@ -49,7 +44,7 @@ public struct LogstashLogHandler: LogHandler {
     /// Creates a `LogstashLogHandler` that directs its output to Logstash
     /// Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called
     /// Therefore, the `backgroundActivityLogger` uses the default `StreamLogHandler.standardOutput` `LogHandler`
-    /// If not, in case of an error occuring error in the logging backend, the `backgroundActivityLogger` will call the `LogstashLogHandler` backend,
+    /// If not, in case of an error occuring error in the logging backend, the `backgroundActivityLogger` will use the `LogstashLogHandler` backend,
     /// resulting in an infinite recursion and to a crash. Sadly, there is no way to check the type of the used backend of the `backgroundActivityLogger` at runtime
     public init(label: String,
                 hostname: String = "0.0.0.0",
@@ -85,7 +80,6 @@ public struct LogstashLogHandler: LogHandler {
                     line: UInt) {
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
 
-        // Encode the logdata
         guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
             self.backgroundActivityLogger.log(level: .warning,
                                               "Error during encoding log data",
@@ -96,35 +90,28 @@ public struct LogstashLogHandler: LogHandler {
             return
         }
 
-        // Lock only if state value is "false", indicating that no operations on the
-        // temp byte buffer during uploading are taking place
-        // Helps to prevent a second logging during the time it takes for the
-        // upload task to be executed -> Therefore ensures that we don't schedule the upload task twice
-        guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
+        // The conditional lock ensures that the uploading function is not "manually" scheduled multiple times
+        guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
             return
         }
 
-        // Check if the maximum storage size would be exeeded.
+        // Check if the maximum storage size of the byte buffer would be exeeded.
         // If that's the case, trigger the uploading of the logs manually
         if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
-            // Cancle the old upload task
+            // Cancle the "old" upload task
             self.uploadTask?.cancel(promise: nil)
 
             // Trigger the upload task immediatly
             self.uploadTask = scheduleUploadTask(initialDelay: TimeAmount.zero)
 
-            // Unlock with state value "true", indicating that the copying into
-            // a temp byte buffer during uploading takes place now
-            self.lock.unlock(withValue: true)
+            // Indicates that the byte buffer is full and must be emptied before writing to it again
+            self.byteBufferLock.unlock(withValue: true)
         } else {
-            // Unlock regardless of the current state value
-            self.lock.unlock()
+            self.byteBufferLock.unlock()
         }
 
-        // Lock only if state value is "false", indicating that no operations
-        // on the temp byte buffer during uploading are taking place
-        guard self.lock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
+        guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
             return
         }
@@ -134,7 +121,6 @@ public struct LogstashLogHandler: LogHandler {
         // Write actual log data to log store
         self.byteBuffer.writeData(logData)
 
-        // Unlock regardless of the current state value
-        self.lock.unlock()
+        self.byteBufferLock.unlock()
     }
 }

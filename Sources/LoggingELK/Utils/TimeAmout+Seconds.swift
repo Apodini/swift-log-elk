@@ -7,6 +7,7 @@
 import NIO
 
 extension TimeAmount {
+    /// Provides access to the time amount in the seconds unit
     var rawSeconds: Double {
         Double(self.nanoseconds) / Double(1_000_000_000)
     }

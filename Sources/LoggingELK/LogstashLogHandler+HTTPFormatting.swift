@@ -35,7 +35,6 @@ extension LogstashLogHandler {
         var httpRequest: HTTPClient.Request
 
         do {
-            /// Create the base HTTP Request
             httpRequest = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
         } catch {
             fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
@@ -46,9 +45,6 @@ extension LogstashLogHandler {
         httpRequest.headers.add(name: "Accept", value: "application/json")
         // Keep-alive header to keep the connection open
         httpRequest.headers.add(name: "Connection", value: "keep-alive")
-        // If upload interval is below 10 seconds, dynamically adapt the Keep-Alive timeout
-        // Timeout specifies the desired time interval, Max specifies the maximum number
-        // of requests going over this one connection
         if uploadInterval <= TimeAmount.seconds(10) {
             httpRequest.headers.add(name: "Keep-Alive",
                                     value: "timeout=\(Int((uploadInterval.rawSeconds * 3).rounded(.toNearestOrAwayFromZero))), max=100")
@@ -65,7 +61,7 @@ extension LogstashLogHandler {
                        message: Logger.Message) -> Data? {
         do {
             let bodyObject = LogstashHTTPBody(
-                timestamp: timestamp(),
+                timestamp: timestamp,
                 loglevel: level,
                 message: message,
                 metadata: mergedMetadata
@@ -79,8 +75,8 @@ extension LogstashLogHandler {
 }
 
 extension LogstashLogHandler {
-    fileprivate func timestamp() -> String {
-        return Self.dateFormatter.string(from: Date())
+    private var timestamp: String {
+        Self.dateFormatter.string(from: Date())
     }
 
     private static var dateFormatter: ISO8601DateFormatter {
