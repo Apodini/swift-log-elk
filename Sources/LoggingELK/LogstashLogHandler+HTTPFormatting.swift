@@ -79,12 +79,16 @@ extension LogstashLogHandler {
         Self.dateFormatter.string(from: Date())
     }
 
-    private static var dateFormatter: ISO8601DateFormatter {
+    private static let dateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        formatter.timeZone = TimeZone(identifier: "en_US_POSIX")
+        // The identifier en_US_POSIX leads to exception on Linux machines,
+        // on Darwin this is apperently ignored (it's even possible to state an
+        // arbitrary value, no exception is thrown on Darwin machines -> inconsistency?
+        //formatter.timeZone = TimeZone(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.autoupdatingCurrent
         return formatter
-    }
+    }()
 }
 
 /// Make `Logger.MetadataValue` conform to `Encodable` and `Decodable`

@@ -20,7 +20,7 @@ final class LoggingELKTests: XCTestCase {
         
         // Cancle the actual uploading to Logstash
         self.logstashHandler.uploadTask?.cancel(promise: nil)
-        
+
         // Use .bootstrapInternal to be able to bootstrap the logging backend multiple times
         LoggingSystem.bootstrapInternal { _ in
             self.logstashHandler
@@ -28,6 +28,7 @@ final class LoggingELKTests: XCTestCase {
         
         self.logger = Logger(label: "test")
     }
+    
     
     /// Clear the internal state of the logging backend `LogstashLogHandler` after each test case
     override func tearDown() {
@@ -39,6 +40,7 @@ final class LoggingELKTests: XCTestCase {
         self.logstashHandler.byteBuffer.clear()
     }
     
+    
     func testSimpleLogging() {
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
         
@@ -48,7 +50,6 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes > 0)
     }
     
-    /*
     /// Default log level is .info, so logs with level .trace won't be logged at all
     func testDefaultLogLevel() {
         XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
@@ -252,7 +253,6 @@ final class LoggingELKTests: XCTestCase {
         // Goal is that "A single log entry is larger than the configured log storage size" error is printed on stdout
         // But sadly quite hard to test
     }
-     */
     
     private func randomString(length: Int) -> String {
         let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

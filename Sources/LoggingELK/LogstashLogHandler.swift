@@ -79,6 +79,7 @@ public struct LogstashLogHandler: LogHandler {
                     line: UInt) {
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
 
+
         guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
             self.backgroundActivityLogger.log(
                 level: .warning,
@@ -98,6 +99,7 @@ public struct LogstashLogHandler: LogHandler {
             return
         }
 
+        
         // The conditional lock ensures that the uploading function is not "manually" scheduled multiple times
         guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
