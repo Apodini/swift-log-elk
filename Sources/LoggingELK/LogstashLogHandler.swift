@@ -80,11 +80,20 @@ public struct LogstashLogHandler: LogHandler {
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
 
         guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
-            self.backgroundActivityLogger.log(level: .warning,
-                                              "Error during encoding log data",
-                                              metadata: ["hostname": .string(self.hostname),
-                                                         "port": .string(String(describing: self.port)),
-                                                         "label": .string(self.label)])
+            self.backgroundActivityLogger.log(
+                level: .warning,
+                "Error during encoding log data",
+                metadata: [
+                    "label": .string(self.label),
+                    "logEntry": .dictionary(
+                        [
+                            "message": .string(message.description),
+                            "metadata": .dictionary(mergedMetadata),
+                            "logLevel": .string(level.rawValue)
+                        ]
+                    )
+                ]
+            )
 
             return
         }
@@ -98,6 +107,29 @@ public struct LogstashLogHandler: LogHandler {
         // Check if the maximum storage size of the byte buffer would be exeeded.
         // If that's the case, trigger the uploading of the logs manually
         if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
+            // A single log entry is larger than the current byte buffer size
+            if self.byteBuffer.readableBytes == 0 {
+                self.backgroundActivityLogger.log(
+                    level: .warning,
+                    "A single log entry is larger than the configured log storage size",
+                    metadata: [
+                        "label": .string(self.label),
+                        "sizeOfLogStorage": .string("\(self.byteBuffer.capacity)"),
+                        "sizeOfLogEntry": .string("\(logData.count)"),
+                        "logEntry": .dictionary(
+                            [
+                                "message": .string(message.description),
+                                "metadata": .dictionary(mergedMetadata),
+                                "logLevel": .string(level.rawValue)
+                            ]
+                        )
+                    ]
+                )
+                
+                self.byteBufferLock.unlock()
+                return
+            }
+            
             // Cancle the "old" upload task
             self.uploadTask?.cancel(promise: nil)
 

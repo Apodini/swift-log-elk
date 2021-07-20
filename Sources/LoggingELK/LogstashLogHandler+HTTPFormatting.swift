@@ -11,7 +11,7 @@ import Logging
 import AsyncHTTPClient
 
 extension LogstashLogHandler {
-    private struct LogstashHTTPBody: Encodable {
+    struct LogstashHTTPBody: Codable {
         let timestamp: String
         let loglevel: Logger.Level
         let message: Logger.Message
@@ -88,9 +88,10 @@ extension LogstashLogHandler {
 }
 
 /// Make `Logger.MetadataValue` conform to `Encodable`
-extension Logger.MetadataValue: Encodable {
+extension Logger.MetadataValue: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
+        
         switch self {
         case let .string(string):
             try container.encode(string)
@@ -102,12 +103,41 @@ extension Logger.MetadataValue: Encodable {
             try container.encode(array)
         }
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if container.decodeNil() {
+            self = .string("null")
+        } else if let string = try? container.decode(String.self) {
+            self = .string(string)
+        } else if let array = try? container.decode([Logger.MetadataValue].self) {
+            self = .array(array)
+        } else if let dictionary = try? container.decode(Logger.Metadata.self) {
+            self = .dictionary(dictionary)
+        } else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Encountered unexpected JSON values"))
+        }
+    }
 }
 
 /// Make `Logger.Message` conform to `Encodable`
-extension Logger.Message: Encodable {
+extension Logger.Message: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
+        
         try container.encode(self.description)
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if container.decodeNil() {
+            self = .init(stringLiteral: "null")
+        } else if let string = try? container.decode(String.self) {
+            self = .init(stringLiteral: string)
+        } else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Encountered unexpected JSON values"))
+        }
     }
 }

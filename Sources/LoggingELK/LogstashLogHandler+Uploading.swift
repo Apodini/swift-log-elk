@@ -16,11 +16,12 @@ extension LogstashLogHandler {
             .scheduleRepeatedTask(
                 initialDelay: initialDelay,
                 delay: uploadInterval,
-                notifying: nil, upload
+                notifying: nil,
+                uploadLogData
             )
     }
 
-    private func upload(_ task: RepeatedTask? = nil) throws {
+    private func uploadLogData(_ task: RepeatedTask? = nil) throws {
         guard self.byteBuffer.readableBytes != 0 else {
             return
         }
@@ -46,12 +47,12 @@ extension LogstashLogHandler {
                 fatalError("Error reading log data from byte buffer")
             }
 
-            var httpRequest: HTTPClient.Request
-
-            if self.httpRequest != nil {
-                httpRequest = self.httpRequest!
-            } else {
-                httpRequest = createHTTPRequest()
+            if self.httpRequest == nil {
+                self.httpRequest = createHTTPRequest()
+            }
+            
+            guard var httpRequest = self.httpRequest else {
+                fatalError("HTTP Request not properly initialized")
             }
 
             httpRequest.body = .byteBuffer(logData)
@@ -59,19 +60,25 @@ extension LogstashLogHandler {
             self.httpClient.execute(request: httpRequest).whenComplete { result in
                 switch result {
                 case .failure(let error):
-                    self.backgroundActivityLogger.log(level: .warning,
-                                                      "Error during sending logs to Logstash - \(error)",
-                                                      metadata: ["hostname": .string(self.hostname),
-                                                                 "port": .string(String(describing: self.port)),
-                                                                 "label": .string(self.label)])
+                    self.backgroundActivityLogger.log(
+                        level: .warning,
+                        "Error during sending logs to Logstash - \(error)",
+                        metadata: [
+                            "label": .string(self.label),
+                            "hostname": .string(self.hostname),
+                            "port": .string(String(describing: self.port))
+                        ]
+                    )
                 case .success(let response):
                     if response.status != .ok {
                         self.backgroundActivityLogger.log(
                             level: .warning,
                             "Error during sending logs to Logstash - \(String(describing: response.status))",
-                            metadata: ["hostname": .string(self.hostname),
-                                       "port": .string(String(describing: self.port)),
-                                       "label": .string(self.label)]
+                            metadata: [
+                                "label": .string(self.label),
+                                "hostname": .string(self.hostname),
+                                "port": .string(String(describing: self.port))
+                            ]
                         )
                     }
                 }
