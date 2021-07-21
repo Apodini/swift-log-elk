@@ -14,7 +14,7 @@ extension LogstashLogHandler {
     /// A struct used to encode the `Logger.Level`, `Logger.Message`, `Logger.Metadata`, and a timestamp
     /// which is then sent to Logstash
     struct LogstashHTTPBody: Codable {
-        let timestamp: Date
+        let timestamp: String
         let loglevel: Logger.Level
         let message: Logger.Message
         let metadata: Logger.Metadata
@@ -68,7 +68,7 @@ extension LogstashLogHandler {
                        metadata: Logger.Metadata) -> Data? {
         do {
             let bodyObject = LogstashHTTPBody(
-                timestamp: Date(),
+                timestamp: timestamp,
                 loglevel: level,
                 message: message,
                 metadata: metadata
@@ -81,24 +81,24 @@ extension LogstashLogHandler {
     }
 }
 
-//extension LogstashLogHandler {
-//    /// Uses the `ISO8601DateFormatter` to create the timstamp of the log entry
-//    private var timestamp: String {
-//        Self.dateFormatter.string(from: Date())
-//    }
-//
-//    /// An `ISO8601DateFormatter` used to format the timestamp of the log entry in an ISO8601 conformant fashion
-//    private static let dateFormatter: ISO8601DateFormatter = {
-//        let formatter = ISO8601DateFormatter()
-//        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-//        // The identifier en_US_POSIX leads to exception on Linux machines,
-//        // on Darwin this is apperently ignored (it's even possible to state an
-//        // arbitrary value, no exception is thrown on Darwin machines -> inconsistency?)
-//        //formatter.timeZone = TimeZone(identifier: "en_US_POSIX")
-//        formatter.timeZone = TimeZone.autoupdatingCurrent
-//        return formatter
-//    }()
-//}
+extension LogstashLogHandler {
+    /// Uses the `ISO8601DateFormatter` to create the timstamp of the log entry
+    private var timestamp: String {
+        Self.dateFormatter.string(from: Date())
+    }
+
+    /// An `ISO8601DateFormatter` used to format the timestamp of the log entry in an ISO8601 conformant fashion
+    private static let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        // The identifier en_US_POSIX leads to exception on Linux machines,
+        // on Darwin this is apperently ignored (it's even possible to state an
+        // arbitrary value, no exception is thrown on Darwin machines -> inconsistency?)
+        //formatter.timeZone = TimeZone(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.autoupdatingCurrent
+        return formatter
+    }()
+}
 
 /// Make `Logger.MetadataValue` conform to `Encodable` and `Decodable`, so it can be sent to Logstash
 extension Logger.MetadataValue: Codable {
