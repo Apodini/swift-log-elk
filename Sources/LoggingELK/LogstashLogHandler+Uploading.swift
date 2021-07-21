@@ -10,6 +10,7 @@ import NIOConcurrencyHelpers
 import AsyncHTTPClient
 
 extension LogstashLogHandler {
+    /// Schedules the `uploadLogData` function with a certain `TimeAmount` as `initialDelay` and `delay` (delay between repeating the task)
     func scheduleUploadTask(initialDelay: TimeAmount) -> RepeatedTask {
         eventLoopGroup
             .next()
@@ -21,6 +22,14 @@ extension LogstashLogHandler {
             )
     }
 
+    /// Function which uploads the stored log data in the `ByteBuffer` to Logstash
+    /// Never called directly, its only scheduled via the `scheduleUploadTask` function
+    /// This function is thread-safe and designed to only block the stored log data `ByteBuffer`
+    /// for a short amount of time (the time it takes to duplicate this bytebuffer). Then, the "original"
+    /// stored log data `ByteBuffer` is freed and the lock is lifted
+    /// Also works if the stored log data `ByteBuffer` runs full (eg. because of a log data spike) during
+    /// the uploading process. In this case, multiple new temporary log data buffers are allocated which
+    /// hold the log entries
     private func uploadLogData(_ task: RepeatedTask? = nil) throws {
         guard self.byteBuffer.readableBytes != 0 else {
             return

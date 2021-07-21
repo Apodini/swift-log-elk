@@ -13,24 +13,40 @@ import AsyncHTTPClient
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
 public struct LogstashLogHandler: LogHandler {
+    /// The label of the `LogHandler`
     let label: String
+    /// The host where a Logstash instance is running
     let hostname: String
+    /// The port of the host where a Logstash instance is running
     let port: Int
+    /// The `EventLoopGroup` which is used to create the `HTTPClient`
     let eventLoopGroup: EventLoopGroup
+    /// Used to log background activity of the `LogstashLogHandler` and `HTTPClient`
+    /// This logger MUST be created BEFORE the `LoggingSystem` is bootstrapped, else it results in an infinte recusion!
     let backgroundActivityLogger: Logger
+    /// Represents a certain amount of time which serves as a delay between the triggering of the uploading to Logstash
     let uploadInterval: TimeAmount
+    /// Specifies how large the log storage `ByteBuffer` must be at least (`ByteBuffer` rounds up to a size to the power of two)
     let minimumLogStorageSize: Int
 
+    /// The `HTTPClient` which is used to create the `HTTPClient.Request`
     let httpClient: HTTPClient
+    /// The `HTTPClient.Request` which stays consistent (except the body) over all uploadings to Logstash
     @Boxed var httpRequest: HTTPClient.Request?
 
+    /// The log storage byte buffer which serves as a cache of the log data entires
     @Boxed var byteBuffer: ByteBuffer
+    /// Provides thread-safe access to the log storage byte buffer
     let byteBufferLock = ConditionLock(value: false)
+    /// Created during scheduling of the upload function to Logstash, provides the ability to cancle the uploading task
     @Boxed private(set) var uploadTask: RepeatedTask?
 
+    /// The default `Logger.Level` of the `LogstashLogHandler`
+    /// Logging entries below this `Logger.Level` won't get logged at all
     public var logLevel: Logger.Level = .info
+    /// Holds the `Logger.Metadata` of the `LogstashLogHandler`
     public var metadata = Logger.Metadata()
-
+    /// Convenience subscript to get and set `Logger.Metadata`
     public subscript(metadataKey metadataKey: String) -> Logger.Metadata.Value? {
         get {
             self.metadata[metadataKey]
@@ -70,7 +86,11 @@ public struct LogstashLogHandler: LogHandler {
         self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
     }
 
-    public func log(level: Logger.Level,    // swiftlint:disable:this function_parameter_count
+    /// The main log function of the `LogstashLogHandler`
+    /// Merges the `Logger.Metadata`, encodes the log entry to a propertly formatted HTTP body
+    /// which is then caches in the log store `ByteBuffer`
+    /// This function is thread-safe via a `ConditionalLock` on the log store `ByteBuffer`
+    public func log(level: Logger.Level,            // swiftlint:disable:this function_parameter_count
                     message: Logger.Message,
                     metadata: Logger.Metadata?,
                     source: String,
@@ -79,8 +99,7 @@ public struct LogstashLogHandler: LogHandler {
                     line: UInt) {
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
 
-
-        guard let logData = encodeLogData(mergedMetadata: mergedMetadata, level: level, message: message) else {
+        guard let logData = encodeLogData(level: level, message: message, metadata: mergedMetadata) else {
             self.backgroundActivityLogger.log(
                 level: .warning,
                 "Error during encoding log data",

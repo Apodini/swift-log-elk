@@ -8,6 +8,9 @@
 import Logging
 
 extension LogstashLogHandler {
+    /// Merges the `Logger.Metadata` passed via the `.log()` function call as well
+    /// as the metadata set directly on the logger (eg. via `logger[metadatakey: "test"] = "test"`
+    /// Furthermore, it formats and adds the code location of the logging call to the `Logger.Metadata`
     func mergeMetadata(passedMetadata: Logger.Metadata?,
                        file: String,
                        function: String,
@@ -19,6 +22,7 @@ extension LogstashLogHandler {
         return mergedMetadata
     }
 
+    /// Splits the source code file path so that only the relevant path is logged
     private func conciseSourcePath(_ path: String) -> String {
         path.split(separator: "/")
             .split(separator: "Sources")
@@ -26,6 +30,7 @@ extension LogstashLogHandler {
             .joined(separator: "/") ?? path
     }
 
+    /// Formats the code location properly
     private func formatLocation(file: String, function: String, line: UInt) -> String {
         "\(self.conciseSourcePath(file)) ▶ \(function) ▶ \(line)"
     }

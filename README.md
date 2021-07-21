@@ -16,7 +16,7 @@ The swift-log-elk library provides a logging backend for Apple's [apple/swift-lo
 - Supports both Darwin (macOS) and Linux platforms
 - Uploads the log data automatically to Logstash (eg. the ELK stack)
 - Caches the created log entries and sends them via HTTP either periodically or when exceeding a certain configurable memory threshold to Logstash
-- Converts the logging metadata to a JSON representation, which allows to query them (eg. filter after a specific parameter in Kibana)
+- Converts the logging metadata to a JSON representation, which allows querying after those values (eg. filter after a specific parameter in Kibana)
 - Logs itself via a background activity logger
 
 ## Requirements
