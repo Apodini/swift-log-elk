@@ -57,10 +57,7 @@ public struct LogstashLogHandler: LogHandler {
     }
 
     /// Creates a `LogstashLogHandler` that directs its output to Logstash
-    /// Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called
-    /// Therefore, the `backgroundActivityLogger` uses the default `StreamLogHandler.standardOutput` `LogHandler`
-    /// If not, in case of an error occuring error in the logging backend, the `backgroundActivityLogger` will use the `LogstashLogHandler` backend,
-    /// resulting in an infinite recursion and to a crash. Sadly, there is no way to check the type of the used backend of the `backgroundActivityLogger` at runtime
+    /// Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called (currently not even possible otherwise)
     public init(label: String,
                 hostname: String = "0.0.0.0",
                 port: Int = 31311,
@@ -88,7 +85,7 @@ public struct LogstashLogHandler: LogHandler {
 
     /// The main log function of the `LogstashLogHandler`
     /// Merges the `Logger.Metadata`, encodes the log entry to a propertly formatted HTTP body
-    /// which is then caches in the log store `ByteBuffer`
+    /// which is then cached in the log store `ByteBuffer`
     /// This function is thread-safe via a `ConditionalLock` on the log store `ByteBuffer`
     public func log(level: Logger.Level,            // swiftlint:disable:this function_parameter_count
                     message: Logger.Message,
@@ -117,11 +114,28 @@ public struct LogstashLogHandler: LogHandler {
 
             return
         }
-
         
         // The conditional lock ensures that the uploading function is not "manually" scheduled multiple times
         guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
+            self.backgroundActivityLogger.log(
+                level: .warning,
+                "Lock on the log data byte buffer couldn't be aquired",
+                metadata: [
+                    "label": .string(self.label),
+                    "logStorage": .dictionary(
+                        [
+                            "readableBytes": .string("\(self.byteBuffer.readableBytes)"),
+                            "writableBytes": .string("\(self.byteBuffer.writableBytes)"),
+                            "readerIndex": .string("\(self.byteBuffer.readerIndex)"),
+                            "writerIndex": .string("\(self.byteBuffer.writerIndex)"),
+                            "capacity": .string("\(self.byteBuffer.capacity)")
+                        ]
+                    ),
+                    "conditionalLockState": .string("\(self.byteBufferLock.value)")
+                ]
+            )
+            
             return
         }
 
@@ -135,13 +149,13 @@ public struct LogstashLogHandler: LogHandler {
                     "A single log entry is larger than the configured log storage size",
                     metadata: [
                         "label": .string(self.label),
-                        "sizeOfLogStorage": .string("\(self.byteBuffer.capacity)"),
-                        "sizeOfLogEntry": .string("\(logData.count)"),
+                        "logStorageSize": .string("\(self.byteBuffer.capacity)"),
                         "logEntry": .dictionary(
                             [
                                 "message": .string(message.description),
                                 "metadata": .dictionary(mergedMetadata),
-                                "logLevel": .string(level.rawValue)
+                                "logLevel": .string(level.rawValue),
+                                "size": .string("\(logData.count)")
                             ]
                         )
                     ]
@@ -165,6 +179,24 @@ public struct LogstashLogHandler: LogHandler {
 
         guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
+            self.backgroundActivityLogger.log(
+                level: .warning,
+                "Lock on the log data byte buffer couldn't be aquired",
+                metadata: [
+                    "label": .string(self.label),
+                    "logStorage": .dictionary(
+                        [
+                            "readableBytes": .string("\(self.byteBuffer.readableBytes)"),
+                            "writableBytes": .string("\(self.byteBuffer.writableBytes)"),
+                            "readerIndex": .string("\(self.byteBuffer.readerIndex)"),
+                            "writerIndex": .string("\(self.byteBuffer.writerIndex)"),
+                            "capacity": .string("\(self.byteBuffer.capacity)")
+                        ]
+                    ),
+                    "conditionalLockState": .string("\(self.byteBufferLock.value)")
+                ]
+            )
+            
             return
         }
 
