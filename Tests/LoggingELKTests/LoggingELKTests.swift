@@ -12,11 +12,11 @@ final class LoggingELKTests: XCTestCase {
         super.setUp()
         
         // Set high uploadInterval so that the actual uploading never happens
-        self.logstashHandler = try! LogstashLogHandler(label: "logstash-test",
-                                                  backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
-                                                                                   factory: StreamLogHandler.standardOutput),
-                                                  uploadInterval: TimeAmount.seconds(1000),
-                                                  minimumLogStorageSize: 1000)
+        self.logstashHandler = try! LogstashLogHandler(label: "logstash-test",          // swiftlint:disable:this force_try
+                                                       backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
+                                                                                        factory: StreamLogHandler.standardOutput),
+                                                       uploadInterval: TimeAmount.seconds(1000),
+                                                       minimumLogStorageSize: 1000)
         
         // Cancle the actual uploading to Logstash
         self.logstashHandler.uploadTask?.cancel(promise: nil)
@@ -267,7 +267,7 @@ final class LoggingELKTests: XCTestCase {
                                    uploadInterval: TimeAmount.seconds(1000),
                                    minimumLogStorageSize: 1000)) {
                     thrownError = $0
-            }
+        }
         
         XCTAssertTrue(
             thrownError is LogstashLogHandler.Error,

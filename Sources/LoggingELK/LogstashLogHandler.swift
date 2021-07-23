@@ -104,7 +104,7 @@ public struct LogstashLogHandler: LogHandler {
     /// Merges the `Logger.Metadata`, encodes the log entry to a propertly formatted HTTP body
     /// which is then cached in the log store `ByteBuffer`
     // This function is thread-safe via a `ConditionalLock` on the log store `ByteBuffer`
-    public func log(level: Logger.Level,            // swiftlint:disable:this function_parameter_count
+    public func log(level: Logger.Level,            // swiftlint:disable:this function_parameter_count function_body_length
                     message: Logger.Message,
                     metadata: Logger.Metadata?,
                     source: String,
