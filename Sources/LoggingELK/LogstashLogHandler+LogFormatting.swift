@@ -18,6 +18,8 @@ extension LogstashLogHandler {
         var mergedMetadata = self.metadata.merging(passedMetadata ?? [:]) { $1 }
         // Add code location to metdata
         mergedMetadata["location"] = .string(formatLocation(file: file, function: function, line: line))
+        // Remove "super-secret-is-a-logstash-loghandler" from actually logged metadata
+        mergedMetadata.removeValue(forKey: "super-secret-is-a-logstash-loghandler")
 
         return mergedMetadata
     }

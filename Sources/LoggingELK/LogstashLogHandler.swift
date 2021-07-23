@@ -9,6 +9,7 @@ import NIO
 import NIOConcurrencyHelpers
 import Logging
 import AsyncHTTPClient
+import Foundation
 
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
@@ -57,14 +58,14 @@ public struct LogstashLogHandler: LogHandler {
     }
 
     /// Creates a `LogstashLogHandler` that directs its output to Logstash
-    /// Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called (currently not even possible otherwise)
+    // Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called (currently not even possible otherwise)
     public init(label: String,
                 hostname: String = "0.0.0.0",
                 port: Int = 31311,
                 eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
                 backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
                 uploadInterval: TimeAmount = TimeAmount.seconds(3),
-                minimumLogStorageSize: Int = 1_048_576) {
+                minimumLogStorageSize: Int = 1_048_576) throws {
         self.label = label
         self.hostname = hostname
         self.port = port
@@ -79,14 +80,30 @@ public struct LogstashLogHandler: LogHandler {
         self.uploadInterval = uploadInterval
         self.minimumLogStorageSize = minimumLogStorageSize
 
+        // Need to be wrapped in a class since those properties can be mutated
         self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: minimumLogStorageSize))
         self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
+        
+        // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
+        // doesn't use the LogstashLogHandler as a logging backend
+        // Currently, this behavior isn't even possible, but maybe in future versions of the swift-log package
+        self[metadataKey: "super-secret-is-a-logstash-loghandler"] = .string("true")
+        
+        // Check if backgroundActivityLogger doesn't use the LogstashLogHandler as a logging backend
+        if let usesLogstashHandlerValue = backgroundActivityLogger[metadataKey: "super-secret-is-a-logstash-loghandler"],
+           case .string(let usesLogstashHandler) = usesLogstashHandlerValue,
+           usesLogstashHandler == "true" {
+            try self.httpClient.syncShutdown()
+            self.uploadTask?.cancel(promise: nil)
+            
+            throw Error.backgroundActivityLoggerBackendError
+        }
     }
 
     /// The main log function of the `LogstashLogHandler`
     /// Merges the `Logger.Metadata`, encodes the log entry to a propertly formatted HTTP body
     /// which is then cached in the log store `ByteBuffer`
-    /// This function is thread-safe via a `ConditionalLock` on the log store `ByteBuffer`
+    // This function is thread-safe via a `ConditionalLock` on the log store `ByteBuffer`
     public func log(level: Logger.Level,            // swiftlint:disable:this function_parameter_count
                     message: Logger.Message,
                     metadata: Logger.Metadata?,
@@ -116,6 +133,7 @@ public struct LogstashLogHandler: LogHandler {
         }
         
         // The conditional lock ensures that the uploading function is not "manually" scheduled multiple times
+        // The state of the lock, in this case "false", indicates, that the byteBuffer isn't full at the moment
         guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
             self.backgroundActivityLogger.log(
@@ -171,7 +189,8 @@ public struct LogstashLogHandler: LogHandler {
             // Trigger the upload task immediatly
             self.uploadTask = scheduleUploadTask(initialDelay: TimeAmount.zero)
 
-            // Indicates that the byte buffer is full and must be emptied before writing to it again
+            // The state of the lock, in this case "true", indicates, that the byteBuffer
+            // is full at the moment and must be emptied before writing to it again
             self.byteBufferLock.unlock(withValue: true)
         } else {
             self.byteBufferLock.unlock()

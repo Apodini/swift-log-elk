@@ -12,7 +12,7 @@ final class LoggingELKTests: XCTestCase {
         super.setUp()
         
         // Set high uploadInterval so that the actual uploading never happens
-        self.logstashHandler = LogstashLogHandler(label: "logstash-test",
+        self.logstashHandler = try! LogstashLogHandler(label: "logstash-test",
                                                   backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
                                                                                    factory: StreamLogHandler.standardOutput),
                                                   uploadInterval: TimeAmount.seconds(1000),
@@ -251,7 +251,30 @@ final class LoggingELKTests: XCTestCase {
         )
         
         // Goal is that "A single log entry is larger than the configured log storage size" error is printed on stdout
-        // But sadly quite hard to test
+        // But sadly quite hard to test, maybe with a Pipe?
+    }
+    
+    func testBackgroundActivityLoggerHasLogstashLogHandlerBackend() {
+        // Create a new logger (that already has the LogstashLogHandler as a logging backend since
+        // LoggingSystem.bootstrap(...) was already called
+        let backgroundActivityLogger = Logger(label: "backgroundActivityLoggerWithLogstashLogHandlerBackend")
+        
+        var thrownError: Error?
+        // This call now throws an exception since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
+        XCTAssertThrowsError(
+            try LogstashLogHandler(label: "logstash-test",
+                                   backgroundActivityLogger: backgroundActivityLogger,
+                                   uploadInterval: TimeAmount.seconds(1000),
+                                   minimumLogStorageSize: 1000)) {
+                    thrownError = $0
+            }
+        
+        XCTAssertTrue(
+            thrownError is LogstashLogHandler.Error,
+            "Unexpected error type: \(type(of: thrownError))"
+        )
+
+        XCTAssertEqual(thrownError as? LogstashLogHandler.Error, .backgroundActivityLoggerBackendError)
     }
     
     private func randomString(length: Int) -> String {
