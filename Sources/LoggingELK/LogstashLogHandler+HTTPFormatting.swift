@@ -40,7 +40,7 @@ extension LogstashLogHandler {
         var httpRequest: HTTPClient.Request
 
         do {
-            httpRequest = try HTTPClient.Request(url: "http://\(hostname):\(port)", method: .POST)
+            httpRequest = try HTTPClient.Request(url: "\(useHTTPS ? "https" : "http")://\(hostname):\(port)", method: .POST)
         } catch {
             fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
         }

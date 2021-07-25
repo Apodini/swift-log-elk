@@ -277,6 +277,26 @@ final class LoggingELKTests: XCTestCase {
         XCTAssertEqual(thrownError as? LogstashLogHandler.Error, .backgroundActivityLoggerBackendError)
     }
     
+    func testMaximumLogStorageTooLow() {
+        var thrownError: Error?
+        // This call now throws an exception since the maximum log storage size is too low
+        XCTAssertThrowsError(
+            try LogstashLogHandler(label: "logstash-test",
+                                   backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
+                                   uploadInterval: TimeAmount.seconds(1000),
+                                   minimumLogStorageSize: 1000,
+                                   maximumLogStorageSize: 1023)) {
+                    thrownError = $0
+        }
+        
+        XCTAssertTrue(
+            thrownError is LogstashLogHandler.Error,
+            "Unexpected error type: \(type(of: thrownError))"
+        )
+
+        XCTAssertEqual(thrownError as? LogstashLogHandler.Error, .maximumLogStorageSizeTooLow)
+    }
+    
     private func randomString(length: Int) -> String {
         let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return String((0..<length).map { _ in letters.randomElement() ?? "x" })

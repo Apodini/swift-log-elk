@@ -5,11 +5,11 @@
 //  Created by Philipp Zagar on 26.06.21.
 //
 
+import Foundation
 import NIO
 import NIOConcurrencyHelpers
 import Logging
 import AsyncHTTPClient
-import Foundation
 
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
@@ -20,6 +20,8 @@ public struct LogstashLogHandler: LogHandler {
     let hostname: String
     /// The port of the host where a Logstash instance is running
     let port: Int
+    /// Specifies if the HTTP connection to Logstash should be encrypted via TLS (so HTTPS instead of HTTP)
+    let useHTTPS: Bool
     /// The `EventLoopGroup` which is used to create the `HTTPClient`
     let eventLoopGroup: EventLoopGroup
     /// Used to log background activity of the `LogstashLogHandler` and `HTTPClient`
@@ -27,8 +29,10 @@ public struct LogstashLogHandler: LogHandler {
     let backgroundActivityLogger: Logger
     /// Represents a certain amount of time which serves as a delay between the triggering of the uploading to Logstash
     let uploadInterval: TimeAmount
-    /// Specifies how large the log storage `ByteBuffer` must be at least (`ByteBuffer` rounds up to a size to the power of two)
-    let minimumLogStorageSize: Int
+    /// Specifies how large the log storage `ByteBuffer` must be at least
+    let logStorageSize: Int
+    /// Specifies how large the log storage `ByteBuffer` with all the current uploading buffers can be at the most
+    let maximumTotalLogStorageSize: Int
 
     /// The `HTTPClient` which is used to create the `HTTPClient.Request`
     let httpClient: HTTPClient
@@ -39,6 +43,13 @@ public struct LogstashLogHandler: LogHandler {
     @Boxed var byteBuffer: ByteBuffer
     /// Provides thread-safe access to the log storage byte buffer
     let byteBufferLock = ConditionLock(value: false)
+    
+    /// Keeps track of how much memory is allocated in total
+    @Boxed var totalByteBufferSize: Int
+    /// Semaphore to adhere to the maximum memory limit
+    let semaphore = DispatchSemaphore(value: 0)
+    /// Manual counter of the semaphore (since no access to the internal one of the semaphore)
+    @Boxed var semaphoreCounter: Int = 0
     /// Created during scheduling of the upload function to Logstash, provides the ability to cancle the uploading task
     @Boxed private(set) var uploadTask: RepeatedTask?
 
@@ -62,27 +73,47 @@ public struct LogstashLogHandler: LogHandler {
     public init(label: String,
                 hostname: String = "0.0.0.0",
                 port: Int = 31311,
-                eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1),
+                useHTTPS: Bool = false,
+                eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount != 1) ? System.coreCount / 2 : 1),
                 backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
                 uploadInterval: TimeAmount = TimeAmount.seconds(3),
-                minimumLogStorageSize: Int = 1_048_576) throws {
+                logStorageSize: Int = 524_288,
+                maximumTotalLogStorageSize: Int = 4_194_304) throws {
         self.label = label
         self.hostname = hostname
         self.port = port
+        self.useHTTPS = useHTTPS
+        self.eventLoopGroup = eventLoopGroup
+        self.backgroundActivityLogger = backgroundActivityLogger
+        self.uploadInterval = uploadInterval
+        // Round up to the power of two since ByteBuffer automatically allocates in these steps
+        self.logStorageSize = logStorageSize.nextPowerOf2()
+        self.maximumTotalLogStorageSize = maximumTotalLogStorageSize.nextPowerOf2()
+        
         self.httpClient = HTTPClient(
             eventLoopGroupProvider: .shared(eventLoopGroup),
             configuration: HTTPClient.Configuration(),
             backgroundActivityLogger: backgroundActivityLogger
         )
 
-        self.eventLoopGroup = eventLoopGroup
-        self.backgroundActivityLogger = backgroundActivityLogger
-        self.uploadInterval = uploadInterval
-        self.minimumLogStorageSize = minimumLogStorageSize
-
         // Need to be wrapped in a class since those properties can be mutated
-        self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: minimumLogStorageSize))
+        self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: logStorageSize))
+        self._totalByteBufferSize = Boxed(wrappedValue: self._byteBuffer.wrappedValue.capacity)
         self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
+        
+        // Doesn't work properly
+//        defer {
+//            try? self.httpClient.syncShutdown()
+//            self.uploadTask?.cancel(promise: nil)
+//        }
+        
+        // If the double minimum log storage size is larger than maximum log storage size throw error
+        if self.maximumTotalLogStorageSize < (2 * self.logStorageSize) {
+            try? self.httpClient.syncShutdown()
+            self.uploadTask?.cancel(promise: nil)
+            
+            throw Error.maximumLogStorageSizeTooLow
+        }
         
         // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
         // doesn't use the LogstashLogHandler as a logging backend
@@ -93,7 +124,7 @@ public struct LogstashLogHandler: LogHandler {
         if let usesLogstashHandlerValue = backgroundActivityLogger[metadataKey: "super-secret-is-a-logstash-loghandler"],
            case .string(let usesLogstashHandler) = usesLogstashHandlerValue,
            usesLogstashHandler == "true" {
-            try self.httpClient.syncShutdown()
+            try? self.httpClient.syncShutdown()
             self.uploadTask?.cancel(promise: nil)
             
             throw Error.backgroundActivityLoggerBackendError
@@ -185,13 +216,16 @@ public struct LogstashLogHandler: LogHandler {
             
             // Cancle the "old" upload task
             self.uploadTask?.cancel(promise: nil)
-
-            // Trigger the upload task immediatly
-            self.uploadTask = scheduleUploadTask(initialDelay: TimeAmount.zero)
-
+            
             // The state of the lock, in this case "true", indicates, that the byteBuffer
             // is full at the moment and must be emptied before writing to it again
             self.byteBufferLock.unlock(withValue: true)
+
+            // Trigger the upload task immediatly
+            uploadLogData()
+            
+            // Schedule a new upload task with the appropriate inital delay
+            self.uploadTask = scheduleUploadTask(initialDelay: self.uploadInterval)
         } else {
             self.byteBufferLock.unlock()
         }
@@ -218,7 +252,7 @@ public struct LogstashLogHandler: LogHandler {
             
             return
         }
-
+        
         // Write size of the log data
         self.byteBuffer.writeInteger(logData.count)
         // Write actual log data to log store
