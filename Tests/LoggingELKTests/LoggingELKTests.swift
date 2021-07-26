@@ -16,7 +16,7 @@ final class LoggingELKTests: XCTestCase {
                                                        backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
                                                                                         factory: StreamLogHandler.standardOutput),
                                                        uploadInterval: TimeAmount.seconds(1000),
-                                                       minimumLogStorageSize: 1000)
+                                                       logStorageSize: 1000)
         
         // Cancle the actual uploading to Logstash
         self.logstashHandler.uploadTask?.cancel(promise: nil)
@@ -265,7 +265,7 @@ final class LoggingELKTests: XCTestCase {
             try LogstashLogHandler(label: "logstash-test",
                                    backgroundActivityLogger: backgroundActivityLogger,
                                    uploadInterval: TimeAmount.seconds(1000),
-                                   minimumLogStorageSize: 1000)) {
+                                   logStorageSize: 1000)) {
                     thrownError = $0
         }
         
@@ -284,8 +284,8 @@ final class LoggingELKTests: XCTestCase {
             try LogstashLogHandler(label: "logstash-test",
                                    backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
                                    uploadInterval: TimeAmount.seconds(1000),
-                                   minimumLogStorageSize: 1000,
-                                   maximumLogStorageSize: 1023)) {
+                                   logStorageSize: 1000,
+                                   maximumTotalLogStorageSize: 1023)) {
                     thrownError = $0
         }
         
