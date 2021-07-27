@@ -6,7 +6,7 @@
 
 /// See: https://stackoverflow.com/questions/32873212/unit-test-fatalerror-in-swift/44140448#44140448
 
-// overrides Swift global `fatalError`
+/// Overrides Swift global `fatalError` to enable testing of runtime fatal errors
 func fatalError(_ message: @autoclosure () -> String = String(), file: StaticString = #file, line: UInt = #line) -> Never {
     FatalErrorUtil.fatalErrorClosure(message(), file, line)
 }
