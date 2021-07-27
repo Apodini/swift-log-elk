@@ -12,7 +12,9 @@ final class LoggingELKTests: XCTestCase {
         super.setUp()
         
         // Set high uploadInterval so that the actual uploading never happens
-        self.logstashHandler = LogstashLogHandler(label: "logstash-test",          // swiftlint:disable:this force_try
+        self.logstashHandler = LogstashLogHandler(label: "logstash-test",
+                                                  hostname: "0.0.0.0",
+                                                  port: 31311,
                                                   backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
                                                                                    factory: StreamLogHandler.standardOutput),
                                                   uploadInterval: TimeAmount.seconds(1000),
@@ -263,6 +265,8 @@ final class LoggingELKTests: XCTestCase {
         // This initialization now fails since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
         expectFatalError(expectedMessage: LogstashLogHandler.Error.backgroundActivityLoggerBackendError.rawValue) {
             _ = LogstashLogHandler(label: "logstash-test",
+                                   hostname: "0.0.0.0",
+                                   port: 31311,
                                    backgroundActivityLogger: backgroundActivityLogger,
                                    uploadInterval: TimeAmount.seconds(1000),
                                    logStorageSize: 1000)
@@ -274,6 +278,8 @@ final class LoggingELKTests: XCTestCase {
         // of the logStorageSize (in terms of multiples of 2)
         expectFatalError(expectedMessage: LogstashLogHandler.Error.maximumLogStorageSizeTooLow.rawValue) {
             _ = LogstashLogHandler(label: "logstash-test",
+                                   hostname: "0.0.0.0",
+                                   port: 31311,
                                    backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
                                    uploadInterval: TimeAmount.seconds(1000),
                                    logStorageSize: 1000,
