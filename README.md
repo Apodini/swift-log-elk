@@ -114,6 +114,9 @@ let logger = Logger(label: "com.example.WebService")
 logger.info("This is a test!")
 ```
 
+![image](https://user-images.githubusercontent.com/25406915/127134981-45e0ce7f-9718-4550-a0b1-e1138e8035e4.png)
+
+
 ELK stack must be running (or only Logstash). I recommend the docker-elk package (link), since it provides all the tools necessary to collect, analyze and present the log data. Show pipeline config for http and resulting kibana screen with 2-3 logs
 
 ## Documentation
