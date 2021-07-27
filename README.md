@@ -88,6 +88,10 @@ LoggingSystem.bootstrap { label in
 
 The `LogstashLogHandler` can also be configured beyond the standard configuration values. Below you can see an example of the maximum possible configuration options. The developer can eg. specify if HTTPS (so TLS encryption) should be used, the to be used `EventLoopGroup` for handeling the HTTP requests, a `Logger` that logs background activity of the `LogstashLogHandler` or network connectivity, and a certain `uploadInterval`, so in what time intervals the log data should be uploaded to Logstash. Furthermore, the size of the buffer that caches the log data can be configured as well as the maximum total size of all the log buffers (since temporary buffers are created during uploading).
 
+Important: The `maximumTotalLogStorageSize` MUST be at least twice as large as the `logStorageSize` (this is also validated during instanciation of the `LogstashLogHandler`). The reason for this are the temporary buffers that are allocated during uploading of the log data, so that a simultaneous logging call doesn't block (except for the duration it takes to copy the logs to the temporary buffer which is very fast). 
+
+Why at least twice as large? The process of allocating temporary buffers could possibly be repeated, if the log storage runs full during uploading of old log data. A possible scenario is an environment, where the network conncection to Logstash is really slow and therefore the uploading process lasts long. This process could repeat itself over and over again until the `maximumTotalLogStorageSize` is reached. Then, a new logging call blocks until enought memory space is available again, achieved through the completed uploading of log data, resulting in freed temporary buffers.
+
 ```swift
 LoggingSystem.bootstrap { label in
     LogstashLogHandler(
@@ -114,8 +118,11 @@ let logger = Logger(label: "com.example.WebService")
 logger.info("This is a test!")
 ```
 
+### Setup Logstash (ELK stack)
+
 To actually use the `LogstashLogHandler`, there's obviously one last step left: Set up a [elastic/logstash](https://github.com/elastic/logstash) instance where the logs are sent to. 
 The probably most easy setup of a local Logstash instance is to use [docker/elk](https://github.com/deviantony/docker-elk), which provides the entire Elastic stack (ELK) powered by [Docker](https://www.docker.com/) and [Docker-compose](https://docs.docker.com/compose/). The ELK stack allows us to collect, analyze and present the log data and much much more. Please follow the instructions in the [README.me](https://github.com/deviantony/docker-elk#readme) of the repository to setup and configure the ELK stack correctly.
+
 Then, we need to configure the Logstash pipeline to accept HTTP input on a certain host and port. This can be done in the [Logstash pipeline configuration file](https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf). 
 Just adapt the `input` section of the file like this to allow logs to be uploaded locally on port 31311:
 
@@ -150,11 +157,13 @@ Now that the entire setup process is finished, create some log data that is then
 
 Congrats, you sent your first logs via swift-log and swift-log-elk to [elastic/logstash](https://github.com/elastic/logstash), saved them in  [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized them with [elastic/kibana](https://github.com/elastic/kibana)! 🎉
 
+## Usage
+
+For details on how to use the Logging features of [apple/swift-log](https://github.com/apple/swift-log/) exactly, please check out the [documentation of swift-log](https://github.com/apple/swift-log#readme).
+
 ## Documentation
 
 Take a look at our [API reference](https://apodini.github.io/swift-log-elk/) for a full documentation of the package.
-
-## Usage
 
 ## Contributing
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/Apodini/.github/blob/release/CONTRIBUTING.md) first.
