@@ -57,7 +57,7 @@ import Logging
 import LoggingELK
 ```
 
-Create the to be used `LogstashLogHandler` with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:
+Create the `LogstashLogHandler` with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:
 
 ```swift
 LoggingSystem.bootstrap { label in
@@ -90,7 +90,7 @@ The `LogstashLogHandler` can also be configured beyond the standard configuratio
 
 **Important:** The `maximumTotalLogStorageSize` MUST be at least twice as large as the `logStorageSize` (this is also validated during instanciation of the `LogstashLogHandler`). The reason for this are the temporary buffers that are allocated during uploading of the log data, so that a simultaneous logging call doesn't block (except for the duration it takes to copy the logs to the temporary buffer which is very fast). 
 
-Why at least twice as large? The process of allocating temporary buffers could possibly be repeated, if the log storage runs full during uploading of old log data. A possible scenario is an environment, where the network conncection to Logstash is really slow and therefore the uploading process lasts long. This process could repeat itself over and over again until the `maximumTotalLogStorageSize` is reached. Then, a new logging call blocks until enought memory space is available again, achieved through the completed uploading of log data, resulting in freed temporary buffers. In practice, approaching the `maximumTotalLogStorageSize` should basically never happen, except in very resource restricted environments.
+Why at least twice as large? The process of allocating temporary buffers could possibly be repeated, if the log storage runs full during uploading of "old" log data. A possible scenario is an environment, where the network conncection to Logstash is really slow and therefore the uploading takes long. This process could repeat itself over and over again until the `maximumTotalLogStorageSize` is reached. Then, a new logging call blocks until enought memory space is available again, achieved through a partial completed uploading of log data, resulting in freed temporary buffers. In practice, approaching the `maximumTotalLogStorageSize` should basically never happen, except in very resource restricted environments.
 
 ```swift
 LoggingSystem.bootstrap { label in
@@ -102,8 +102,8 @@ LoggingSystem.bootstrap { label in
         eventLoopGroup: eventLoopGroup,
         backgroundActivityLogger: logger,
         uploadInterval: TimeAmount.seconds(3),
-        logStorageSize: 524_288,
-        maximumTotalLogStorageSize: 2_097_152
+        logStorageSize: 524_288,    // 512kB
+        maximumTotalLogStorageSize: 2_097_152       // 2MB
     )
 }
 ```
@@ -135,7 +135,7 @@ input {
 }
 ```
 
-Furthermore, to use the timestamp created by the `LogstashLogHandler` (not the timestamp when the data is actually sent to Logstash), adapt the `filter` section of the [Logstash pipeline configuration file](https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf) like shown below. This also eliminates the HTTP headers of the HTTP request from the `LogstashLogHandler` to Logstash, since those headers would also have been saved to the log entry (which are definitly not relevant to us).
+Furthermore, to use the timestamp created by the `LogstashLogHandler` (not the timestamp when the data is actually sent to Logstash), adapt the `filter` section of the [Logstash pipeline configuration file](https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf) like shown below. The second option eliminates the headers of the HTTP request from the `LogstashLogHandler` to Logstash, since those headers would also have been saved to the log entry (which are definitly not relevant to us).
 
 ```
 filter {
@@ -151,7 +151,9 @@ filter {
 }
 ```
 
-Now that the entire setup process is finished, create some log data that is then automatically sent to Logstash. Since we use the entire ELK stack, not just Logstash, we can use [elastic/kibana](https://github.com/elastic/kibana) to instantly visualize the uploaded log data. Access the Kibana web interface (on the respective port) and navigate to `Analytics/Discover`. Your created log messages (including metadata) should now be displayed here:
+Now that the entire setup process is finished, create some log data that is then automatically sent to Logstash (eg. see [section above](#setup-logging)). 
+
+Since we use the entire ELK stack, not just Logstash, we can use [elastic/kibana](https://github.com/elastic/kibana) to instantly visualize the uploaded log data. Access the Kibana web interface (on the respective port) and navigate to `Analytics/Discover`. Your created log messages (including metadata) should now be displayed here:
 
 ![image](https://user-images.githubusercontent.com/25406915/127134981-45e0ce7f-9718-4550-a0b1-e1138e8035e4.png)
 
