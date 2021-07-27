@@ -5,8 +5,6 @@
 //  Created by Philipp Zagar on 15.07.21.
 //
 
-#warning("dev import")
-import Foundation
 import NIO
 import NIOConcurrencyHelpers
 import AsyncHTTPClient
@@ -29,9 +27,6 @@ extension LogstashLogHandler {
     /// This function is thread-safe and designed to only block the stored log data `ByteBuffer`
     /// for a short amount of time (the time it takes to duplicate this bytebuffer). Then, the "original"
     /// stored log data `ByteBuffer` is freed and the lock is lifted
-    /// Also works if the stored log data `ByteBuffer` runs full (eg. because of a log data spike) during
-    /// the uploading process. In this case, multiple new temporary log data buffers are allocated which
-    /// hold the log entries
     func uploadLogData(_ task: RepeatedTask? = nil) {       // swiftlint:disable:this cyclomatic_complexity function_body_length
         guard self.byteBuffer.readableBytes != 0 else {
             return
@@ -59,7 +54,7 @@ extension LogstashLogHandler {
             self.httpRequest = createHTTPRequest()
         }
         
-        var eventLoopArray: [EventLoopFuture<HTTPClient.Response>] = []
+        var pendingHTTPRequests: [EventLoopFuture<HTTPClient.Response>] = []
         
         // Read data from temp byte buffer until it doesn't contain any readable bytes anymore
         while tempByteBuffer.readableBytes != 0 {
@@ -74,13 +69,13 @@ extension LogstashLogHandler {
             
             httpRequest.body = .byteBuffer(logData)
             
-            eventLoopArray.append(self.httpClient.execute(request: httpRequest))
+            pendingHTTPRequests.append(self.httpClient.execute(request: httpRequest))
         }
         
         self.byteBufferLock.unlock(withValue: false)
         
         _ = EventLoopFuture<HTTPClient.Response>
-            .whenAllComplete(eventLoopArray, on: self.eventLoopGroup.next())
+            .whenAllComplete(pendingHTTPRequests, on: self.eventLoopGroup.next())
             .map { results in
                 _ = results.map { result in
                     switch result {
@@ -105,9 +100,6 @@ extension LogstashLogHandler {
                                     "port": .string(String(describing: self.port))
                                 ]
                             )
-                        } else {
-                            #warning("dev output")
-                            print("sent \(Thread.current)")
                         }
                     }
                 }

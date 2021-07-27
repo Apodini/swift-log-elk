@@ -262,20 +262,20 @@ final class LoggingELKTests: XCTestCase {
         
         // This call now throws an exception since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
         expectFatalError(expectedMessage: LogstashLogHandler.Error.backgroundActivityLoggerBackendError.rawValue) {
-            let _ = LogstashLogHandler(label: "logstash-test",
-                               backgroundActivityLogger: backgroundActivityLogger,
-                               uploadInterval: TimeAmount.seconds(1000),
-                               logStorageSize: 1000)
+            _ = LogstashLogHandler(label: "logstash-test",
+                                   backgroundActivityLogger: backgroundActivityLogger,
+                                   uploadInterval: TimeAmount.seconds(1000),
+                                   logStorageSize: 1000)
         }
     }
     
     func testMaximumLogStorageTooLow() {
         expectFatalError(expectedMessage: LogstashLogHandler.Error.maximumLogStorageSizeTooLow.rawValue) {
-            let _ = LogstashLogHandler(label: "logstash-test",
-                               backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
-                               uploadInterval: TimeAmount.seconds(1000),
-                               logStorageSize: 1000,
-                               maximumTotalLogStorageSize: 1023)
+            _ = LogstashLogHandler(label: "logstash-test",
+                                   backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
+                                   uploadInterval: TimeAmount.seconds(1000),
+                                   logStorageSize: 1000,
+                                   maximumTotalLogStorageSize: 1023)
         }
     }
     
