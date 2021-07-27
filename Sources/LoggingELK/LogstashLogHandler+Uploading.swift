@@ -77,7 +77,7 @@ extension LogstashLogHandler {
             )
         }
         
-        // Wait until all HTTP requests finished
+        // Wait until all HTTP requests finished, then signal waiting threads
         _ = EventLoopFuture<HTTPClient.Response>
             .whenAllComplete(pendingHTTPRequests, on: self.eventLoopGroup.next())
             .map { results in

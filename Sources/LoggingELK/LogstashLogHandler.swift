@@ -112,7 +112,7 @@ public struct LogstashLogHandler: LogHandler {
         
         // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
         // doesn't use the LogstashLogHandler as a logging backend
-        // Currently, this behavior isn't even possible, but maybe in future versions of the swift-log package
+        // Currently, this behavior isn't even possible in production, but maybe in future versions of the swift-log package
         self[metadataKey: "super-secret-is-a-logstash-loghandler"] = .string("true")
         
         // Check if backgroundActivityLogger doesn't use the LogstashLogHandler as a logging backend
