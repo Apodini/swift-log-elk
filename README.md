@@ -9,7 +9,7 @@
 
 ### **swift-log-elk is a logging backend library for Apple's swift-log**
 
-The swift-log-elk library provides a logging backend for Apple's [apple/swift-log](https://github.com/apple/swift-log/) package (which basically just defines a logging API). The log entries are properly formatted, cached, and then uploaded via HTTP/HTTPS to [elastic/logstash](https://github.com/elastic/logstash), which allows for further processing in its pipeline. The logs can then be stored in ElasticSearch [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized in [elastic/kibana](https://github.com/elastic/kibana).
+The swift-log-elk library provides a logging backend for Apple's [apple/swift-log](https://github.com/apple/swift-log/) package (which basically just defines a logging API). The log entries are properly formatted, cached, and then uploaded via HTTP/HTTPS to [elastic/logstash](https://github.com/elastic/logstash), which allows for further processing in its pipeline. The logs can then be stored in [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized in [elastic/kibana](https://github.com/elastic/kibana).
 
 ## Features
 - Written completly in Swift
@@ -114,10 +114,41 @@ let logger = Logger(label: "com.example.WebService")
 logger.info("This is a test!")
 ```
 
+To actually use the `LogstashLogHandler`, there's obviously one last step left: Set up a [elastic/logstash](https://github.com/elastic/logstash) instance where the logs are sent to. 
+The probably most easy setup of a local Logstash instance is to use [docker/elk](https://github.com/deviantony/docker-elk), which provides the entire Elastic stack (ELK) powered by [Docker](https://www.docker.com/) and [Docker-compose](https://docs.docker.com/compose/). The ELK stack allows us to collect, analyze and present the log data and much much more. Please follow the instructions in the [README.me](https://github.com/deviantony/docker-elk#readme) of the repository to setup and configure the ELK stack correctly.
+Then, we need to configure the Logstash pipeline to accept HTTP input on a certain host and port. This can be done in the [Logstash pipeline configuration file](https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf). 
+Just adapt the `input` section of the file like this to allow logs to be uploaded locally on port 31311:
+
+```
+input {
+    http {
+        host => "0.0.0.0"
+        port => 31311
+    }
+}
+```
+
+Furthermore, to use the timestamp created by the `LogstashLogHandler` (not the timestamp when the data is actually sent to Logstash), adapt the `filter` section of the [Logstash pipeline configuration file](https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf) like shown below. This also eliminates the HTTP headers of the HTTP request from the `LogstashLogHandler` to Logstash, since those headers would also have been saved to the log entry (which are definitly not relevant to us).
+
+```
+filter {
+    date {
+        match => [ "timestamp", "ISO8601" ]
+        locale => "en_US"       # POSIX
+        target => "@timestamp"
+    }
+
+    mutate {
+        remove_field => ["headers"]
+    }
+}
+```
+
+Now that the entire setup process is finished, create some log data that is then automatically sent to Logstash. Since we use the entire ELK stack, not just Logstash, we can use [elastic/kibana](https://github.com/elastic/kibana) to instantly visualize the uploaded log data. Access the Kibana web interface (on the respective port) and navigate to `Analytics/Discover`. Your created log messages (including metadata) should now be displayed here:
+
 ![image](https://user-images.githubusercontent.com/25406915/127134981-45e0ce7f-9718-4550-a0b1-e1138e8035e4.png)
 
-
-ELK stack must be running (or only Logstash). I recommend the docker-elk package (link), since it provides all the tools necessary to collect, analyze and present the log data. Show pipeline config for http and resulting kibana screen with 2-3 logs
+Congrats, you sent your first logs via swift-log and swift-log-elk to [elastic/logstash](https://github.com/elastic/logstash), saved them in  [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized them with [elastic/kibana](https://github.com/elastic/kibana)! 🎉
 
 ## Documentation
 
