@@ -7,6 +7,8 @@
 import XCTest
 @testable import LoggingELK
 
+/// See: https://stackoverflow.com/questions/32873212/unit-test-fatalerror-in-swift/44140448#44140448
+
 extension XCTestCase {
     func expectFatalError(expectedMessage: String, testcase: @escaping () -> Void) {
         
