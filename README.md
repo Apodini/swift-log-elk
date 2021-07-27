@@ -9,7 +9,7 @@
 
 ### **swift-log-elk is a logging backend library for Apple's swift-log**
 
-The swift-log-elk library provides a logging backend for Apple's [apple/swift-log](https://github.com/apple/swift-log/) package (which basically just defines a logging API). The log entries are properly formatted, cached, and then uploaded via HTTP to [elastic/logstash](https://github.com/elastic/logstash), which allows for further processing in its pipeline. The logs can then be stored in ElasticSearch [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized in [elastic/kibana](https://github.com/elastic/kibana).
+The swift-log-elk library provides a logging backend for Apple's [apple/swift-log](https://github.com/apple/swift-log/) package (which basically just defines a logging API). The log entries are properly formatted, cached, and then uploaded via HTTP/HTTPS to [elastic/logstash](https://github.com/elastic/logstash), which allows for further processing in its pipeline. The logs can then be stored in ElasticSearch [elastic/elasticsearch](https://github.com/elastic/elasticsearch) and visualized in [elastic/kibana](https://github.com/elastic/kibana).
 
 ## Features
 - Written completly in Swift
@@ -17,11 +17,61 @@ The swift-log-elk library provides a logging backend for Apple's [apple/swift-lo
 - Uploads the log data automatically to Logstash (eg. the ELK stack)
 - Caches the created log entries and sends them via HTTP either periodically or when exceeding a certain configurable memory threshold to Logstash
 - Converts the logging metadata to a JSON representation, which allows querying after those values (eg. filter after a specific parameter in Kibana)
-- Logs itself via a background activity logger
+- Logs itself via a background activity logger (including protection against a possible infinte recursion)
 
-## Requirements
+## Setup
 
-## Installation/Setup/Integration
+LoggingELK requires Xcode 12 or a Swift 5.4 toolchain with the Swift Package Manager. 
+
+### Swift Package Manager
+
+Add swift-log and the swift-log-elk package as a dependency to your `Package.swift` file.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+    .package(url: "https://github.com/Apodini/swift-log-elk.git", from: "0.1.0")
+]
+```
+
+Add Logging and LoggingELK to your target's dependencies.
+
+```swift
+targets: [
+    .target(
+        name: "ExampleWebService",
+        dependencies: [
+            .product(name: "Logging", package: "swift-log"),
+            .product(name: "LoggingELK", package: "swift-log-elk")
+        ]
+    )
+]
+```
+
+### Setup Logging
+
+1. Import both `Logging` (from swift-log) and `LoggingELK` (from swift-log-elk) modules:
+
+```swift
+import Logging
+import LoggingELK
+```
+
+2. Register the to be used logging backend ONCE:
+
+```swift
+LoggingSystem.bootstrap(GoogleCloudLogHandler.init)
+```
+
+Furthermore, it's possible to register multiple backends. An option would be to send the logs to Logstash as well as print them to console:
+
+```swift
+LoggingSystem.bootstrap { MultiplexLogHandler([GoogleCloudLogHandler(label: $0), StreamLogHandler.standardOutput(label: $0)]) }
+```
+
+## Documentation
+
+Take a look at our [API reference](https://apodini.github.io/swift-log-elk/) for a full documentation of the package.
 
 ## Usage
 

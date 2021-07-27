@@ -177,6 +177,11 @@ final class LoggingELKTests: XCTestCase {
         [
             "thisisatest": .stringConvertible("")
         ]
+        // Since stringConvertible is automatically converted to a string during the encoding process and cannot be transformed back to a stringConvertible since the two can't be differentiated
+        let expectedLogMetadata: Logger.Metadata =
+        [
+            "thisisatest": .string("")
+        ]
         
         self.logger.info(logMessage, metadata: logMetadata)
         
@@ -196,11 +201,7 @@ final class LoggingELKTests: XCTestCase {
         // Remove "location" metadata value
         var httpBodyMetadata = logHTTPBody.metadata
         httpBodyMetadata.removeValue(forKey: "location")
-        // Since stringConvertible is automatically converted to a string during the encoding process and cannot be transformed back to a stringConvertible since the two can't be differentiated
-        let expectedLogMetadata: Logger.Metadata =
-        [
-            "thisisatest": .string("")
-        ]
+    
         XCTAssertEqual(httpBodyMetadata, expectedLogMetadata)
     }
     
@@ -259,42 +260,23 @@ final class LoggingELKTests: XCTestCase {
         // LoggingSystem.bootstrap(...) was already called
         let backgroundActivityLogger = Logger(label: "backgroundActivityLoggerWithLogstashLogHandlerBackend")
         
-        var thrownError: Error?
         // This call now throws an exception since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
-        XCTAssertThrowsError(
-            try LogstashLogHandler(label: "logstash-test",
-                                   backgroundActivityLogger: backgroundActivityLogger,
-                                   uploadInterval: TimeAmount.seconds(1000),
-                                   logStorageSize: 1000)) {
-                    thrownError = $0
+        expectFatalError(expectedMessage: LogstashLogHandler.Error.backgroundActivityLoggerBackendError.rawValue) {
+            let _ = LogstashLogHandler(label: "logstash-test",
+                               backgroundActivityLogger: backgroundActivityLogger,
+                               uploadInterval: TimeAmount.seconds(1000),
+                               logStorageSize: 1000)
         }
-        
-        XCTAssertTrue(
-            thrownError is LogstashLogHandler.Error,
-            "Unexpected error type: \(type(of: thrownError))"
-        )
-
-        XCTAssertEqual(thrownError as? LogstashLogHandler.Error, .backgroundActivityLoggerBackendError)
     }
     
     func testMaximumLogStorageTooLow() {
-        var thrownError: Error?
-        // This call now throws an exception since the maximum log storage size is too low
-        XCTAssertThrowsError(
-            try LogstashLogHandler(label: "logstash-test",
-                                   backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
-                                   uploadInterval: TimeAmount.seconds(1000),
-                                   logStorageSize: 1000,
-                                   maximumTotalLogStorageSize: 1023)) {
-                    thrownError = $0
+        expectFatalError(expectedMessage: LogstashLogHandler.Error.maximumLogStorageSizeTooLow.rawValue) {
+            let _ = LogstashLogHandler(label: "logstash-test",
+                               backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
+                               uploadInterval: TimeAmount.seconds(1000),
+                               logStorageSize: 1000,
+                               maximumTotalLogStorageSize: 1023)
         }
-        
-        XCTAssertTrue(
-            thrownError is LogstashLogHandler.Error,
-            "Unexpected error type: \(type(of: thrownError))"
-        )
-
-        XCTAssertEqual(thrownError as? LogstashLogHandler.Error, .maximumLogStorageSizeTooLow)
     }
     
     private func randomString(length: Int) -> String {

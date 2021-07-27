@@ -78,7 +78,7 @@ public struct LogstashLogHandler: LogHandler {
                 backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
                 uploadInterval: TimeAmount = TimeAmount.seconds(3),
                 logStorageSize: Int = 524_288,
-                maximumTotalLogStorageSize: Int = 4_194_304) throws {
+                maximumTotalLogStorageSize: Int = 4_194_304) {
         self.label = label
         self.hostname = hostname
         self.port = port
@@ -101,18 +101,12 @@ public struct LogstashLogHandler: LogHandler {
         self._totalByteBufferSize = Boxed(wrappedValue: self._byteBuffer.wrappedValue.capacity)
         self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
         
-        // Doesn't work properly
-//        defer {
-//            try? self.httpClient.syncShutdown()
-//            self.uploadTask?.cancel(promise: nil)
-//        }
-        
         // If the double minimum log storage size is larger than maximum log storage size throw error
         if self.maximumTotalLogStorageSize < (2 * self.logStorageSize) {
             try? self.httpClient.syncShutdown()
             self.uploadTask?.cancel(promise: nil)
             
-            throw Error.maximumLogStorageSizeTooLow
+            fatalError(Error.maximumLogStorageSizeTooLow.rawValue)
         }
         
         // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
@@ -127,7 +121,7 @@ public struct LogstashLogHandler: LogHandler {
             try? self.httpClient.syncShutdown()
             self.uploadTask?.cancel(promise: nil)
             
-            throw Error.backgroundActivityLoggerBackendError
+            fatalError(Error.backgroundActivityLoggerBackendError.rawValue)
         }
     }
 

@@ -7,7 +7,7 @@
 import Foundation
 
 extension LogstashLogHandler {
-    enum Error: String, LocalizedError {
+    enum Error: String {
         case backgroundActivityLoggerBackendError = """
         Background Activity Logger uses the LogstashLogHandler as a logging backend. \
         This results in an infinite recursion in case of an error in the logging backend.
@@ -17,7 +17,5 @@ extension LogstashLogHandler {
         The passed maximumLogStorageSize is too low. It needs to be at least twice as much \
         (spoken in terms of the power of two) as the passed minimumLogStorageSize.
         """
-        
-        public var errorDescription: String? { self.rawValue }
     }
 }
