@@ -50,24 +50,71 @@ targets: [
 
 ### Setup Logging
 
-1. Import both `Logging` (from swift-log) and `LoggingELK` (from swift-log-elk) modules:
+Import both `Logging` (from swift-log) and `LoggingELK` (from swift-log-elk) modules:
 
 ```swift
 import Logging
 import LoggingELK
 ```
 
-2. Register the to be used logging backend ONCE:
+Create the to be used `LogstashLogHandler` with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:
 
 ```swift
-LoggingSystem.bootstrap(GoogleCloudLogHandler.init)
+LoggingSystem.bootstrap { label in
+    LogstashLogHandler(
+        label: label,
+        hostname: "0.0.0.0",
+        port: 31311
+    )
+}
 ```
 
-Furthermore, it's possible to register multiple backends. An option would be to send the logs to Logstash as well as print them to console:
+Furthermore, it's possible to register multiple logging backends. An option would be to send the logs to Logstash as well as print them to console:
 
 ```swift
-LoggingSystem.bootstrap { MultiplexLogHandler([GoogleCloudLogHandler(label: $0), StreamLogHandler.standardOutput(label: $0)]) }
+LoggingSystem.bootstrap { label in
+    MultiplexLogHandler(
+        [
+            LogstashLogHandler(
+                label: label,
+                hostname: "0.0.0.0",
+                port: 31311
+            ),
+            StreamLogHandler.standardOutput(label: label)
+        ]
+    ) 
+}
 ```
+
+The `LogstashLogHandler` can also be configured beyond the standard configuration values. Below you can see an example of the maximum possible configuration options. The developer can eg. specify if HTTPS (so TLS encryption) should be used, the to be used `EventLoopGroup` for handeling the HTTP requests, a `Logger` that logs background activity of the `LogstashLogHandler` or network connectivity, and a certain `uploadInterval`, so in what time intervals the log data should be uploaded to Logstash. Furthermore, the size of the buffer that caches the log data can be configured as well as the maximum total size of all the log buffers (since temporary buffers are created during uploading).
+
+```swift
+LoggingSystem.bootstrap { label in
+    LogstashLogHandler(
+        label: "logstash",
+        hostname: "0.0.0.0",
+        port: 31311,
+        useHTTPS: false,
+        eventLoopGroup: eventLoopGroup,
+        backgroundActivityLogger: logger,
+        uploadInterval: TimeAmount.seconds(3),
+        logStorageSize: 524_288,
+        maximumTotalLogStorageSize: 2_097_152
+    )
+}
+```
+
+Now that the setup of the `LogstashLogHandler` is completed, you can use `SwiftLog` as usual (also with metadata etc.). 
+
+```swift
+import Logging
+
+let logger = Logger(label: "com.example.WebService")
+
+logger.info("This is a test!")
+```
+
+ELK stack must be running (or only Logstash). I recommend the docker-elk package (link), since it provides all the tools necessary to collect, analyze and present the log data. Show pipeline config for http and resulting kibana screen with 2-3 logs
 
 ## Documentation
 

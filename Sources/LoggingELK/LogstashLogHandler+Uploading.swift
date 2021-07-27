@@ -50,6 +50,9 @@ extension LogstashLogHandler {
         
         self.byteBuffer.clear()
         
+        self.byteBufferLock.unlock(withValue: false)
+        
+        // Setup of HTTP requests that is used for all transmissions
         if self.httpRequest == nil {
             self.httpRequest = createHTTPRequest()
         }
@@ -69,11 +72,12 @@ extension LogstashLogHandler {
             
             httpRequest.body = .byteBuffer(logData)
             
-            pendingHTTPRequests.append(self.httpClient.execute(request: httpRequest))
+            pendingHTTPRequests.append(
+                self.httpClient.execute(request: httpRequest)
+            )
         }
         
-        self.byteBufferLock.unlock(withValue: false)
-        
+        // Wait until all HTTP requests finished
         _ = EventLoopFuture<HTTPClient.Response>
             .whenAllComplete(pendingHTTPRequests, on: self.eventLoopGroup.next())
             .map { results in

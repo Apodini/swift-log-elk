@@ -44,12 +44,13 @@ public struct LogstashLogHandler: LogHandler {
     /// Provides thread-safe access to the log storage byte buffer
     let byteBufferLock = ConditionLock(value: false)
     
-    /// Keeps track of how much memory is allocated in total
-    @Boxed var totalByteBufferSize: Int
     /// Semaphore to adhere to the maximum memory limit
     let semaphore = DispatchSemaphore(value: 0)
     /// Manual counter of the semaphore (since no access to the internal one of the semaphore)
     @Boxed var semaphoreCounter: Int = 0
+    /// Keeps track of how much memory is allocated in total
+    @Boxed var totalByteBufferSize: Int
+    
     /// Created during scheduling of the upload function to Logstash, provides the ability to cancle the uploading task
     @Boxed private(set) var uploadTask: RepeatedTask?
 
@@ -71,8 +72,8 @@ public struct LogstashLogHandler: LogHandler {
     /// Creates a `LogstashLogHandler` that directs its output to Logstash
     // Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called (currently not even possible otherwise)
     public init(label: String,
-                hostname: String = "0.0.0.0",
-                port: Int = 31311,
+                hostname: String,
+                port: Int,
                 useHTTPS: Bool = false,
                 eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount != 1) ? System.coreCount / 2 : 1),
                 backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),

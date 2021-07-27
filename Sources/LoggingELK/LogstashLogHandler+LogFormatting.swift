@@ -10,7 +10,6 @@ import Logging
 extension LogstashLogHandler {
     /// Merges the `Logger.Metadata` passed via the `.log()` function call as well
     /// as the metadata set directly on the logger (eg. via `logger[metadatakey: "test"] = "test"`
-    /// Furthermore, it formats and adds the code location of the logging call to the `Logger.Metadata`
     func mergeMetadata(passedMetadata: Logger.Metadata?,
                        file: String,
                        function: String,

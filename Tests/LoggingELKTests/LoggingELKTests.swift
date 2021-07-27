@@ -12,11 +12,11 @@ final class LoggingELKTests: XCTestCase {
         super.setUp()
         
         // Set high uploadInterval so that the actual uploading never happens
-        self.logstashHandler = try! LogstashLogHandler(label: "logstash-test",          // swiftlint:disable:this force_try
-                                                       backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
-                                                                                        factory: StreamLogHandler.standardOutput),
-                                                       uploadInterval: TimeAmount.seconds(1000),
-                                                       logStorageSize: 1000)
+        self.logstashHandler = LogstashLogHandler(label: "logstash-test",          // swiftlint:disable:this force_try
+                                                  backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
+                                                                                   factory: StreamLogHandler.standardOutput),
+                                                  uploadInterval: TimeAmount.seconds(1000),
+                                                  logStorageSize: 1000)
         
         // Cancle the actual uploading to Logstash
         self.logstashHandler.uploadTask?.cancel(promise: nil)
@@ -260,7 +260,7 @@ final class LoggingELKTests: XCTestCase {
         // LoggingSystem.bootstrap(...) was already called
         let backgroundActivityLogger = Logger(label: "backgroundActivityLoggerWithLogstashLogHandlerBackend")
         
-        // This call now throws an exception since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
+        // This initialization now fails since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
         expectFatalError(expectedMessage: LogstashLogHandler.Error.backgroundActivityLoggerBackendError.rawValue) {
             _ = LogstashLogHandler(label: "logstash-test",
                                    backgroundActivityLogger: backgroundActivityLogger,
@@ -270,6 +270,8 @@ final class LoggingELKTests: XCTestCase {
     }
     
     func testMaximumLogStorageTooLow() {
+        // This initialization fails since the maximumTotalLogStorageSize isn't at least double
+        // of the logStorageSize (in terms of multiples of 2)
         expectFatalError(expectedMessage: LogstashLogHandler.Error.maximumLogStorageSizeTooLow.rawValue) {
             _ = LogstashLogHandler(label: "logstash-test",
                                    backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
