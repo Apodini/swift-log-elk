@@ -15,6 +15,7 @@ extension LogstashLogHandler {
     /// which is then sent to Logstash
     struct LogstashHTTPBody: Codable {
         let timestamp: String
+        let label: String
         let loglevel: Logger.Level
         let message: Logger.Message
         let metadata: Logger.Metadata
@@ -68,7 +69,8 @@ extension LogstashLogHandler {
                        metadata: Logger.Metadata) -> Data? {
         do {
             let bodyObject = LogstashHTTPBody(
-                timestamp: timestamp,
+                timestamp: self.timestamp,
+                label: self.label,
                 loglevel: level,
                 message: message,
                 metadata: metadata
