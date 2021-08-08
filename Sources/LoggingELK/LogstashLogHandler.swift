@@ -17,42 +17,42 @@ public struct LogstashLogHandler: LogHandler {
     /// The label of the `LogHandler`
     let label: String
     /// The host where a Logstash instance is running
-    let hostname: String
+    static var hostname: String?
     /// The port of the host where a Logstash instance is running
-    let port: Int
+    static var port: Int?
     /// Specifies if the HTTP connection to Logstash should be encrypted via TLS (so HTTPS instead of HTTP)
-    let useHTTPS: Bool
+    static var useHTTPS: Bool?
     /// The `EventLoopGroup` which is used to create the `HTTPClient`
-    let eventLoopGroup: EventLoopGroup
+    static var eventLoopGroup: EventLoopGroup?
     /// Used to log background activity of the `LogstashLogHandler` and `HTTPClient`
     /// This logger MUST be created BEFORE the `LoggingSystem` is bootstrapped, else it results in an infinte recusion!
-    let backgroundActivityLogger: Logger
+    static var backgroundActivityLogger: Logger?
     /// Represents a certain amount of time which serves as a delay between the triggering of the uploading to Logstash
-    let uploadInterval: TimeAmount
+    static var uploadInterval: TimeAmount?
     /// Specifies how large the log storage `ByteBuffer` must be at least
-    let logStorageSize: Int
+    static var logStorageSize: Int?
     /// Specifies how large the log storage `ByteBuffer` with all the current uploading buffers can be at the most
-    let maximumTotalLogStorageSize: Int
+    static var maximumTotalLogStorageSize: Int?
 
     /// The `HTTPClient` which is used to create the `HTTPClient.Request`
-    let httpClient: HTTPClient
+    static var httpClient: HTTPClient?
     /// The `HTTPClient.Request` which stays consistent (except the body) over all uploadings to Logstash
-    @Boxed var httpRequest: HTTPClient.Request?
+    @Boxed static var httpRequest: HTTPClient.Request?
 
     /// The log storage byte buffer which serves as a cache of the log data entires
-    @Boxed var byteBuffer: ByteBuffer
+    @Boxed static var byteBuffer: ByteBuffer?
     /// Provides thread-safe access to the log storage byte buffer
-    let byteBufferLock = ConditionLock(value: false)
+    static let byteBufferLock = ConditionLock(value: false)
     
     /// Semaphore to adhere to the maximum memory limit
-    let semaphore = DispatchSemaphore(value: 0)
+    static let semaphore = DispatchSemaphore(value: 0)
     /// Manual counter of the semaphore (since no access to the internal one of the semaphore)
-    @Boxed var semaphoreCounter: Int = 0
+    @Boxed static var semaphoreCounter: Int = 0
     /// Keeps track of how much memory is allocated in total
-    @Boxed var totalByteBufferSize: Int
+    @Boxed static var totalByteBufferSize: Int?
     
-    /// Created during scheduling of the upload function to Logstash, provides the ability to cancle the uploading task
-    @Boxed private(set) var uploadTask: RepeatedTask?
+    /// Created during scheduling of the upload function to Logstash, provides the ability to cancel the uploading task
+    @Boxed private(set) static var uploadTask: RepeatedTask?
 
     /// The default `Logger.Level` of the `LogstashLogHandler`
     /// Logging entries below this `Logger.Level` won't get logged at all
@@ -71,56 +71,64 @@ public struct LogstashLogHandler: LogHandler {
 
     /// Creates a `LogstashLogHandler` that directs its output to Logstash
     // Make sure that the `backgroundActivityLogger` is instanciated BEFORE `LoggingSystem.bootstrap(...)` is called (currently not even possible otherwise)
-    public init(label: String,
-                hostname: String,
-                port: Int,
-                useHTTPS: Bool = false,
-                eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount != 1) ? System.coreCount / 2 : 1),
-                backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
-                uploadInterval: TimeAmount = TimeAmount.seconds(3),
-                logStorageSize: Int = 524_288,
-                maximumTotalLogStorageSize: Int = 4_194_304) {
-        self.label = label
-        self.hostname = hostname
-        self.port = port
-        self.useHTTPS = useHTTPS
-        self.eventLoopGroup = eventLoopGroup
-        self.backgroundActivityLogger = backgroundActivityLogger
-        self.uploadInterval = uploadInterval
-        // Round up to the power of two since ByteBuffer automatically allocates in these steps
-        self.logStorageSize = logStorageSize.nextPowerOf2()
-        self.maximumTotalLogStorageSize = maximumTotalLogStorageSize.nextPowerOf2()
+    public init(label: String) {
+        // If LogstashLogHandler was not yet set up, abort
+        guard let _ = Self.hostname else {
+            fatalError(Error.notYetSetup.rawValue)
+        }
         
-        self.httpClient = HTTPClient(
+        self.label = label
+        
+        // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
+        // doesn't use the LogstashLogHandler as a logging backend
+        // Currently, this behavior isn't even possible in production, but maybe in future versions of the swift-log package
+        self[metadataKey: "super-secret-is-a-logstash-loghandler"] = .string("true")
+    }
+    
+    /// Setup of the `LogstashLogHandler`, need to be called once before `LoggingSystem.bootstrap(...)` is called
+    public static func setup(hostname: String,
+                             port: Int,
+                             useHTTPS: Bool = false,
+                             eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount != 1) ? System.coreCount / 2 : 1),
+                             backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
+                             uploadInterval: TimeAmount = TimeAmount.seconds(3),
+                             logStorageSize: Int = 524_288,
+                             maximumTotalLogStorageSize: Int = 4_194_304) {
+        // Shutdown httpClient and uploadTask from possible previous setup
+        try? Self.httpClient?.syncShutdown()
+        Self.uploadTask?.cancel(promise: nil)
+        
+        Self.hostname = hostname
+        Self.port = port
+        Self.useHTTPS = useHTTPS
+        Self.eventLoopGroup = eventLoopGroup
+        Self.backgroundActivityLogger = backgroundActivityLogger
+        Self.uploadInterval = uploadInterval
+        // If the double minimum log storage size is larger than maximum log storage size throw error
+        if maximumTotalLogStorageSize.nextPowerOf2() < (2 * logStorageSize.nextPowerOf2()) {
+            fatalError(Error.maximumLogStorageSizeTooLow.rawValue)
+        }
+        // Round up to the power of two since ByteBuffer automatically allocates in these steps
+        Self.logStorageSize = logStorageSize.nextPowerOf2()
+        Self.maximumTotalLogStorageSize = maximumTotalLogStorageSize.nextPowerOf2()
+        
+        Self.httpClient = HTTPClient(
             eventLoopGroupProvider: .shared(eventLoopGroup),
             configuration: HTTPClient.Configuration(),
             backgroundActivityLogger: backgroundActivityLogger
         )
 
         // Need to be wrapped in a class since those properties can be mutated
-        self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: logStorageSize))
-        self._totalByteBufferSize = Boxed(wrappedValue: self._byteBuffer.wrappedValue.capacity)
-        self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
-        
-        // If the double minimum log storage size is larger than maximum log storage size throw error
-        if self.maximumTotalLogStorageSize < (2 * self.logStorageSize) {
-            try? self.httpClient.syncShutdown()
-            self.uploadTask?.cancel(promise: nil)
-            
-            fatalError(Error.maximumLogStorageSizeTooLow.rawValue)
-        }
-        
-        // Set a "super-secret" metadata value to validate that the backgroundActivityLogger
-        // doesn't use the LogstashLogHandler as a logging backend
-        // Currently, this behavior isn't even possible in production, but maybe in future versions of the swift-log package
-        self[metadataKey: "super-secret-is-a-logstash-loghandler"] = .string("true")
+        Self._byteBuffer = Boxed(wrappedValue: ByteBufferAllocator().buffer(capacity: logStorageSize))
+        Self._totalByteBufferSize = Boxed(wrappedValue: Self._byteBuffer.wrappedValue?.capacity)
+        Self._uploadTask = Boxed(wrappedValue: scheduleUploadTask(initialDelay: uploadInterval))
         
         // Check if backgroundActivityLogger doesn't use the LogstashLogHandler as a logging backend
         if let usesLogstashHandlerValue = backgroundActivityLogger[metadataKey: "super-secret-is-a-logstash-loghandler"],
            case .string(let usesLogstashHandler) = usesLogstashHandlerValue,
            usesLogstashHandler == "true" {
-            try? self.httpClient.syncShutdown()
-            self.uploadTask?.cancel(promise: nil)
+            try? Self.httpClient?.syncShutdown()
+            Self.uploadTask?.cancel(promise: nil)
             
             fatalError(Error.backgroundActivityLoggerBackendError.rawValue)
         }
@@ -137,10 +145,14 @@ public struct LogstashLogHandler: LogHandler {
                     file: String,
                     function: String,
                     line: UInt) {
+        guard let _ = Self.byteBuffer, let uploadInterval = Self.uploadInterval else {
+            fatalError(Error.notYetSetup.rawValue)
+        }
+        
         let mergedMetadata = mergeMetadata(passedMetadata: metadata, file: file, function: function, line: line)
 
         guard let logData = encodeLogData(level: level, message: message, metadata: mergedMetadata) else {
-            self.backgroundActivityLogger.log(
+            Self.backgroundActivityLogger?.log(
                 level: .warning,
                 "Error during encoding log data",
                 metadata: [
@@ -160,23 +172,23 @@ public struct LogstashLogHandler: LogHandler {
         
         // The conditional lock ensures that the uploading function is not "manually" scheduled multiple times
         // The state of the lock, in this case "false", indicates, that the byteBuffer isn't full at the moment
-        guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
+        guard Self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
-            self.backgroundActivityLogger.log(
+            Self.backgroundActivityLogger?.log(
                 level: .warning,
                 "Lock on the log data byte buffer couldn't be aquired",
                 metadata: [
                     "label": .string(self.label),
                     "logStorage": .dictionary(
                         [
-                            "readableBytes": .string("\(self.byteBuffer.readableBytes)"),
-                            "writableBytes": .string("\(self.byteBuffer.writableBytes)"),
-                            "readerIndex": .string("\(self.byteBuffer.readerIndex)"),
-                            "writerIndex": .string("\(self.byteBuffer.writerIndex)"),
-                            "capacity": .string("\(self.byteBuffer.capacity)")
+                            "readableBytes": .string("\(Self.byteBuffer!.readableBytes)"),
+                            "writableBytes": .string("\(Self.byteBuffer!.writableBytes)"),
+                            "readerIndex": .string("\(Self.byteBuffer!.readerIndex)"),
+                            "writerIndex": .string("\(Self.byteBuffer!.writerIndex)"),
+                            "capacity": .string("\(Self.byteBuffer!.capacity)")
                         ]
                     ),
-                    "conditionalLockState": .string("\(self.byteBufferLock.value)")
+                    "conditionalLockState": .string("\(Self.byteBufferLock.value)")
                 ]
             )
             
@@ -185,15 +197,15 @@ public struct LogstashLogHandler: LogHandler {
 
         // Check if the maximum storage size of the byte buffer would be exeeded.
         // If that's the case, trigger the uploading of the logs manually
-        if (self.byteBuffer.readableBytes + MemoryLayout<Int>.size + logData.count) > self.byteBuffer.capacity {
+        if (Self.byteBuffer!.readableBytes + MemoryLayout<Int>.size + logData.count) > Self.byteBuffer!.capacity {
             // A single log entry is larger than the current byte buffer size
-            if self.byteBuffer.readableBytes == 0 {
-                self.backgroundActivityLogger.log(
+            if Self.byteBuffer?.readableBytes == 0 {
+                Self.backgroundActivityLogger?.log(
                     level: .warning,
                     "A single log entry is larger than the configured log storage size",
                     metadata: [
                         "label": .string(self.label),
-                        "logStorageSize": .string("\(self.byteBuffer.capacity)"),
+                        "logStorageSize": .string("\(Self.byteBuffer!.capacity)"),
                         "logEntry": .dictionary(
                             [
                                 "message": .string(message.description),
@@ -205,43 +217,43 @@ public struct LogstashLogHandler: LogHandler {
                     ]
                 )
                 
-                self.byteBufferLock.unlock()
+                Self.byteBufferLock.unlock()
                 return
             }
             
             // Cancle the "old" upload task
-            self.uploadTask?.cancel(promise: nil)
+            Self.uploadTask?.cancel(promise: nil)
             
             // The state of the lock, in this case "true", indicates, that the byteBuffer
             // is full at the moment and must be emptied before writing to it again
-            self.byteBufferLock.unlock(withValue: true)
+            Self.byteBufferLock.unlock(withValue: true)
 
             // Trigger the upload task immediatly
-            uploadLogData()
+            Self.uploadLogData()
             
             // Schedule a new upload task with the appropriate inital delay
-            self.uploadTask = scheduleUploadTask(initialDelay: self.uploadInterval)
+            Self.uploadTask = Self.scheduleUploadTask(initialDelay: uploadInterval)
         } else {
-            self.byteBufferLock.unlock()
+            Self.byteBufferLock.unlock()
         }
 
-        guard self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
+        guard Self.byteBufferLock.lock(whenValue: false, timeoutSeconds: TimeAmount.seconds(1).rawSeconds) else {
             // If lock couldn't be aquired, don't log the data and just return
-            self.backgroundActivityLogger.log(
+            Self.backgroundActivityLogger?.log(
                 level: .warning,
                 "Lock on the log data byte buffer couldn't be aquired",
                 metadata: [
                     "label": .string(self.label),
                     "logStorage": .dictionary(
                         [
-                            "readableBytes": .string("\(self.byteBuffer.readableBytes)"),
-                            "writableBytes": .string("\(self.byteBuffer.writableBytes)"),
-                            "readerIndex": .string("\(self.byteBuffer.readerIndex)"),
-                            "writerIndex": .string("\(self.byteBuffer.writerIndex)"),
-                            "capacity": .string("\(self.byteBuffer.capacity)")
+                            "readableBytes": .string("\(Self.byteBuffer!.readableBytes)"),
+                            "writableBytes": .string("\(Self.byteBuffer!.writableBytes)"),
+                            "readerIndex": .string("\(Self.byteBuffer!.readerIndex)"),
+                            "writerIndex": .string("\(Self.byteBuffer!.writerIndex)"),
+                            "capacity": .string("\(Self.byteBuffer!.capacity)")
                         ]
                     ),
-                    "conditionalLockState": .string("\(self.byteBufferLock.value)")
+                    "conditionalLockState": .string("\(Self.byteBufferLock.value)")
                 ]
             )
             
@@ -249,10 +261,10 @@ public struct LogstashLogHandler: LogHandler {
         }
         
         // Write size of the log data
-        self.byteBuffer.writeInteger(logData.count)
+        Self.byteBuffer?.writeInteger(logData.count)
         // Write actual log data to log store
-        self.byteBuffer.writeData(logData)
+        Self.byteBuffer?.writeData(logData)
 
-        self.byteBufferLock.unlock()
+        Self.byteBufferLock.unlock()
     }
 }

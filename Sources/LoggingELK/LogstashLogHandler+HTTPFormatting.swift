@@ -37,7 +37,14 @@ extension LogstashLogHandler {
 
     /// Creates the HTTP request which stays constant during the entire lifetime of the `LogstashLogHandler`
     /// Sets some default headers, eg. a dynamically adjusted "Keep-Alive" header
-    func createHTTPRequest() -> HTTPClient.Request {
+    static func createHTTPRequest() -> HTTPClient.Request {
+        guard let useHTTPS = Self.useHTTPS,
+              let hostname = Self.hostname,
+              let port = Self.port,
+              let uploadInterval = Self.uploadInterval else {
+            fatalError(Error.notYetSetup.rawValue)
+        }
+        
         var httpRequest: HTTPClient.Request
 
         do {

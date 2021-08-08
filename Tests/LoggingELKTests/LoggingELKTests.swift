@@ -12,16 +12,17 @@ final class LoggingELKTests: XCTestCase {
         super.setUp()
         
         // Set high uploadInterval so that the actual uploading never happens
-        self.logstashHandler = LogstashLogHandler(label: "logstash-test",
-                                                  hostname: "0.0.0.0",
-                                                  port: 31311,
-                                                  backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
-                                                                                   factory: StreamLogHandler.standardOutput),
-                                                  uploadInterval: TimeAmount.seconds(1000),
-                                                  logStorageSize: 1000)
+        LogstashLogHandler.setup(hostname: "0.0.0.0",
+                                 port: 31311,
+                                 backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
+                                                                  factory: StreamLogHandler.standardOutput),
+                                 uploadInterval: TimeAmount.seconds(1000),
+                                 logStorageSize: 1000)
         
-        // Cancle the actual uploading to Logstash
-        self.logstashHandler.uploadTask?.cancel(promise: nil)
+        // Cancel the actual uploading to Logstash
+        LogstashLogHandler.uploadTask?.cancel(promise: nil)
+        
+        self.logstashHandler = LogstashLogHandler(label: "logstash-test")
 
         // Use .bootstrapInternal to be able to bootstrap the logging backend multiple times
         LoggingSystem.bootstrapInternal { _ in
@@ -39,33 +40,33 @@ final class LoggingELKTests: XCTestCase {
         // Clear metadata
         self.logstashHandler.metadata.removeAll()
         // Clear the bytebuffer after each test run
-        self.logstashHandler.byteBuffer.clear()
+        LogstashLogHandler.byteBuffer?.clear()
     }
     
     
     func testSimpleLogging() {
-        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(LogstashLogHandler.byteBuffer?.readableBytes == 0)
         
         self.logger.error(Logger.Message(stringLiteral: self.randomString(length: 10)),
                           metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
-        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes > 0)
+        XCTAssertTrue(LogstashLogHandler.byteBuffer!.readableBytes > 0)
     }
     
     /// Default log level is .info, so logs with level .trace won't be logged at all
     func testDefaultLogLevel() {
-        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(LogstashLogHandler.byteBuffer?.readableBytes == 0)
         
         // Since default log level is .info, therefore .trace isn't logged
         self.logger.trace(Logger.Message(stringLiteral: self.randomString(length: 10)),
                           metadata: [self.randomString(length: 10): Logger.MetadataValue.string(self.randomString(length: 10))])
         
-        XCTAssertTrue(self.logstashHandler.byteBuffer.readableBytes == 0)
+        XCTAssertTrue(LogstashLogHandler.byteBuffer!.readableBytes == 0)
     }
     
     /// Byte buffer must be at least the passed byte size
     func testByteBufferSize() {
-        XCTAssertTrue(self.logstashHandler.byteBuffer.capacity > 1000)
+        XCTAssertTrue(LogstashLogHandler.byteBuffer!.capacity > 1000)
     }
     
     func testSimpleMetadata() {
@@ -74,8 +75,8 @@ final class LoggingELKTests: XCTestCase {
         
         self.logger.error(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
-              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = LogstashLogHandler.byteBuffer?.readInteger(),
+              let logData = LogstashLogHandler.byteBuffer?.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -124,8 +125,8 @@ final class LoggingELKTests: XCTestCase {
         
         self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
-              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = LogstashLogHandler.byteBuffer?.readInteger(),
+              let logData = LogstashLogHandler.byteBuffer?.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -154,8 +155,8 @@ final class LoggingELKTests: XCTestCase {
         
         self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
-              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = LogstashLogHandler.byteBuffer?.readInteger(),
+              let logData = LogstashLogHandler.byteBuffer?.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -187,8 +188,8 @@ final class LoggingELKTests: XCTestCase {
         
         self.logger.info(logMessage, metadata: logMetadata)
         
-        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
-              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = LogstashLogHandler.byteBuffer?.readInteger(),
+              let logData = LogstashLogHandler.byteBuffer?.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -223,8 +224,8 @@ final class LoggingELKTests: XCTestCase {
         // Set metadata for specific log entry via passing the metadata in the function call
         self.logger.info(logMessage, metadata: logMetadataFunction)
         
-        guard let logDataSize: Int = self.logstashHandler.byteBuffer.readInteger(),
-              let logData = self.logstashHandler.byteBuffer.readSlice(length: logDataSize) else {
+        guard let logDataSize: Int = LogstashLogHandler.byteBuffer?.readInteger(),
+              let logData = LogstashLogHandler.byteBuffer?.readSlice(length: logDataSize) else {
             XCTFail("Log data couldn't be read from byte buffer")
             return
         }
@@ -264,12 +265,11 @@ final class LoggingELKTests: XCTestCase {
         
         // This initialization now fails since the backgroundActivityLogger has the LogstashLogHandler as a logging backend
         expectFatalError(expectedMessage: LogstashLogHandler.Error.backgroundActivityLoggerBackendError.rawValue) {
-            _ = LogstashLogHandler(label: "logstash-test",
-                                   hostname: "0.0.0.0",
-                                   port: 31311,
-                                   backgroundActivityLogger: backgroundActivityLogger,
-                                   uploadInterval: TimeAmount.seconds(1000),
-                                   logStorageSize: 1000)
+            LogstashLogHandler.setup(hostname: "0.0.0.0",
+                                     port: 31311,
+                                     backgroundActivityLogger: backgroundActivityLogger,
+                                     uploadInterval: TimeAmount.seconds(1000),
+                                     logStorageSize: 1000)
         }
     }
     
@@ -277,13 +277,12 @@ final class LoggingELKTests: XCTestCase {
         // This initialization fails since the maximumTotalLogStorageSize isn't at least double
         // of the logStorageSize (in terms of multiples of 2)
         expectFatalError(expectedMessage: LogstashLogHandler.Error.maximumLogStorageSizeTooLow.rawValue) {
-            _ = LogstashLogHandler(label: "logstash-test",
-                                   hostname: "0.0.0.0",
-                                   port: 31311,
-                                   backgroundActivityLogger: self.logstashHandler.backgroundActivityLogger,
-                                   uploadInterval: TimeAmount.seconds(1000),
-                                   logStorageSize: 1000,
-                                   maximumTotalLogStorageSize: 1023)
+            LogstashLogHandler.setup(hostname: "0.0.0.0",
+                                     port: 31311,
+                                     backgroundActivityLogger: LogstashLogHandler.backgroundActivityLogger!,
+                                     uploadInterval: TimeAmount.seconds(1000),
+                                     logStorageSize: 1000,
+                                     maximumTotalLogStorageSize: 1023)
         }
     }
     
