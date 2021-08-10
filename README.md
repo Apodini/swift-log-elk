@@ -67,6 +67,8 @@ LogstashLogHandler.setup(hostname: "0.0.0.0", port: 31311)
 LoggingSystem.bootstrap(LogstashLogHandler.init)
 ```
 
+**Important:** Setup the `LogstashLogHandler` before registering it in the `LoggingSystem`!
+
 Furthermore, it's possible to register multiple logging backends. An option would be to send the logs to Logstash as well as print them to console:
 
 ```swift
