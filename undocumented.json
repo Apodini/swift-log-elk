@@ -1,0 +1,96 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+Error.swift",
+      "line": 10,
+      "symbol": "LogstashLogHandler.Error",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+Error.swift",
+      "line": 11,
+      "symbol": "LogstashLogHandler.Error.backgroundActivityLoggerBackendError",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+Error.swift",
+      "line": 16,
+      "symbol": "LogstashLogHandler.Error.maximumLogStorageSizeTooLow",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+Error.swift",
+      "line": 21,
+      "symbol": "LogstashLogHandler.Error.notYetSetup",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+HTTPFormatting.swift",
+      "line": 17,
+      "symbol": "LogstashLogHandler.LogstashHTTPBody.timestamp",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+HTTPFormatting.swift",
+      "line": 18,
+      "symbol": "LogstashLogHandler.LogstashHTTPBody.label",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+HTTPFormatting.swift",
+      "line": 19,
+      "symbol": "LogstashLogHandler.LogstashHTTPBody.loglevel",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+HTTPFormatting.swift",
+      "line": 20,
+      "symbol": "LogstashLogHandler.LogstashHTTPBody.message",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler+HTTPFormatting.swift",
+      "line": 21,
+      "symbol": "LogstashLogHandler.LogstashHTTPBody.metadata",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/LogstashLogHandler.swift",
+      "line": 74,
+      "symbol": "LogstashLogHandler.init(label:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/Utils/FatalErrorUtil.swift",
+      "line": 16,
+      "symbol": "FatalErrorUtil.FatalErrorClosureType",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/Utils/FatalErrorUtil.swift",
+      "line": 18,
+      "symbol": "FatalErrorUtil.fatalErrorClosure",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-log-elk/swift-log-elk/Sources/LoggingELK/Utils/FatalErrorUtil.swift",
+      "line": 21,
+      "symbol": "FatalErrorUtil.defaultFatalErrorClosure",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/runner/work/swift-log-elk/swift-log-elk"
+}

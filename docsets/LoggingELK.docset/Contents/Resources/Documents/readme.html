@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>README  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+
+    <a title="README  Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="index.html">
+          LoggingELK Docs
+        </a>
+         (81% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/Apodini/swift-log-elk">
+            <img class="header-icon" src="img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="index.html">LoggingELK Reference</a>
+      <img class="carat" src="img/carat.png" />
+      README  Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Guides.html">Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="readme.html">README</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Boxed.html">Boxed</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/FatalErrorUtil.html">FatalErrorUtil</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/FixedWidthInteger.html">FixedWidthInteger</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Logger.html">Logger</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Logger/MetadataValue.html">– MetadataValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Logger/Message.html">– Message</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/TimeAmount.html">TimeAmount</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:10LoggingELK10fatalError_4file4lines5NeverOSSyXK_s12StaticStringVSutF">fatalError(_:file:line:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/LogstashLogHandler.html">LogstashLogHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/LogstashLogHandler/Error.html">– Error</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/LogstashLogHandler/LogstashHTTPBody.html">– LogstashHTTPBody</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            
+            <h1 id='loggingelk' class='heading'>LoggingELK</h1>
+
+<p><img src="https://img.shields.io/badge/Swift-5.4%2B-orange.svg?style=flat" alt="Swift5.4+">
+<a href="https://github.com/Apodini/swift-log-elk/releases"><img src="https://img.shields.io/github/v/release/Apodini/swift-log-elk.svg?include_prereleases&color=blue" alt="release"></a>
+<a href="https://codecov.io/gh/Apodini/swift-log-elk"><img src="https://codecov.io/gh/Apodini/swift-log-elk/branch/develop/graph/badge.svg?token=M9a8FsTExH" alt="codecov"></a>
+<a href="https://apodini.github.io/swift-log-elk/"><img src="https://raw.githubusercontent.com/Apodini/swift-log-elk/gh-pages/badge.svg" alt="jazzy"></a>
+<a href="https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml"><img src="https://github.com/Apodini/swift-log-elk/actions/workflows/build-and-test.yml/badge.svg" alt="Build and Test"></a>
+<a href="https://github.com/Apodini/swift-log-elk/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a></p>
+<h3 id='strong-loggingelk-is-a-logging-backend-library-for-apple-39-s-swift-log-strong' class='heading'><strong>LoggingELK is a logging backend library for Apple&rsquo;s swift-log</strong></h3>
+
+<p>The LoggingELK library provides a logging backend for Apple&rsquo;s <a href="https://github.com/apple/swift-log/">apple/swift-log</a> package (which basically just defines a logging API). The log entries are properly formatted, cached, and then uploaded via HTTP/HTTPS to <a href="https://github.com/elastic/logstash">elastic/logstash</a>, which allows for further processing in its pipeline. The logs can then be stored in <a href="https://github.com/elastic/elasticsearch">elastic/elasticsearch</a> and visualized in <a href="https://github.com/elastic/kibana">elastic/kibana</a>.</p>
+<h2 id='features' class='heading'>Features</h2>
+
+<ul>
+<li>Written completly in Swift</li>
+<li>Supports both Darwin (macOS) and Linux platforms</li>
+<li>Uploads the log data automatically to Logstash (eg. the ELK stack)</li>
+<li>Caches the created log entries and sends them via HTTP either periodically or when exceeding a certain configurable memory threshold to Logstash</li>
+<li>Converts the logging metadata to a JSON representation, which allows querying after those values (eg. filter after a specific parameter in Kibana)</li>
+<li>Logs itself via a background activity logger (including protection against a possible infinite recursion)</li>
+</ul>
+<h2 id='setup' class='heading'>Setup</h2>
+
+<p>LoggingELK requires Xcode 12 or a Swift 5.4 toolchain with the Swift Package Manager. </p>
+<h3 id='swift-package-manager' class='heading'>Swift Package Manager</h3>
+
+<p>Add <code>swift-log</code> and the <code>swift-log-elk</code> package as a dependency to your <code>Package.swift</code> file.</p>
+<pre class="highlight swift"><code><span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
+    <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/apple/swift-log.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"1.0.0"</span><span class="p">),</span>
+    <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/Apodini/swift-log-elk.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"0.1.0"</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+
+<p>Add <code>Logging</code> (from <code>swift-log</code>) and <code>LoggingELK</code> (from <code>swift-log-elk</code>) to your target&rsquo;s dependencies.</p>
+<pre class="highlight swift"><code><span class="nv">targets</span><span class="p">:</span> <span class="p">[</span>
+    <span class="o">.</span><span class="nf">target</span><span class="p">(</span>
+        <span class="nv">name</span><span class="p">:</span> <span class="s">"ExampleWebService"</span><span class="p">,</span>
+        <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
+            <span class="o">.</span><span class="nf">product</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Logging"</span><span class="p">,</span> <span class="nv">package</span><span class="p">:</span> <span class="s">"swift-log"</span><span class="p">),</span>
+            <span class="o">.</span><span class="nf">product</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"LoggingELK"</span><span class="p">,</span> <span class="nv">package</span><span class="p">:</span> <span class="s">"swift-log-elk"</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+</code></pre>
+<h3 id='setup-logging' class='heading'>Setup Logging</h3>
+
+<p>Import both <code>Logging</code> and <code>LoggingELK</code> modules:</p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">Logging</span>
+<span class="kd">import</span> <span class="kt">LoggingELK</span>
+</code></pre>
+
+<p>Setup the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:</p>
+<pre class="highlight swift"><code><span class="c1">// Setup of LogstashLogHandler</span>
+<span class="kt">LogstashLogHandler</span><span class="o">.</span><span class="nf">setup</span><span class="p">(</span><span class="nv">hostname</span><span class="p">:</span> <span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="mi">31311</span><span class="p">)</span>
+
+<span class="c1">// Register LogstashLogHandler in the LoggingSystem</span>
+<span class="kt">LoggingSystem</span><span class="o">.</span><span class="nf">bootstrap</span><span class="p">(</span><span class="kt">LogstashLogHandler</span><span class="o">.</span><span class="kd">init</span><span class="p">)</span>
+</code></pre>
+
+<p><strong>Important:</strong> Setup the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> before registering it in the <code>LoggingSystem</code>!</p>
+
+<p>Furthermore, it&rsquo;s possible to register multiple logging backends. An option would be to send the logs to Logstash as well as print them to console:</p>
+<pre class="highlight swift"><code><span class="c1">// Setup of LogstashLogHandler</span>
+<span class="kt">LogstashLogHandler</span><span class="o">.</span><span class="nf">setup</span><span class="p">(</span><span class="nv">hostname</span><span class="p">:</span> <span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="mi">31311</span><span class="p">)</span>
+
+<span class="c1">// Register LogHandlers in the LoggingSystem</span>
+<span class="kt">LoggingSystem</span><span class="o">.</span><span class="n">bootstrap</span> <span class="p">{</span> <span class="n">label</span> <span class="k">in</span>
+    <span class="kt">MultiplexLogHandler</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="kt">LogstashLogHandler</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="n">label</span><span class="p">),</span>
+            <span class="kt">StreamLogHandler</span><span class="o">.</span><span class="nf">standardOutput</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="n">label</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span> 
+<span class="p">}</span>
+</code></pre>
+
+<p>The <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> can also be configured beyond the standard configuration values. Below you can see an example of the maximum possible configuration options. The developer can eg. specify if HTTPS (so TLS encryption) should be used, the to be used <code>EventLoopGroup</code> for handeling the HTTP requests, a <code>Logger</code> that logs background activity of the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> or network connectivity, and a certain <code>uploadInterval</code>, so in what time intervals the log data should be uploaded to Logstash. Furthermore, the size of the buffer that caches the log data can be configured as well as the maximum total size of all the log buffers (since temporary buffers are created during uploading).</p>
+
+<p><strong>Important:</strong> The <code>maximumTotalLogStorageSize</code> MUST be at least twice as large as the <code>logStorageSize</code> (this is also validated during instanciation of the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code>). The reason for this are the temporary buffers that are allocated during uploading of the log data, so that a simultaneous logging call doesn&rsquo;t block (except for the duration it takes to copy the logs to the temporary buffer which is very fast). </p>
+
+<p>Why at least twice as large? The process of allocating temporary buffers could possibly be repeated, if the log storage runs full during uploading of &ldquo;old&rdquo; log data. A possible scenario is an environment, where the network conncection to Logstash is really slow and therefore the uploading takes long. This process could repeat itself over and over again until the <code>maximumTotalLogStorageSize</code> is reached. Then, a new logging call blocks until enought memory space is available again, achieved through a partial completed uploading of log data, resulting in freed temporary buffers. In practice, approaching the <code>maximumTotalLogStorageSize</code> should basically never happen, except in very resource restricted environments.</p>
+<pre class="highlight swift"><code><span class="c1">// Setup of LogstashLogHandler</span>
+<span class="kt">LogstashLogHandler</span><span class="o">.</span><span class="nf">setup</span><span class="p">(</span>
+    <span class="nv">hostname</span><span class="p">:</span> <span class="s">"0.0.0.0"</span><span class="p">,</span>
+    <span class="nv">port</span><span class="p">:</span> <span class="mi">31311</span><span class="p">,</span>
+    <span class="nv">useHTTPS</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="nv">eventLoopGroup</span><span class="p">:</span> <span class="n">eventLoopGroup</span><span class="p">,</span>
+    <span class="nv">backgroundActivityLogger</span><span class="p">:</span> <span class="n">logger</span><span class="p">,</span>
+    <span class="nv">uploadInterval</span><span class="p">:</span> <span class="kt">TimeAmount</span><span class="o">.</span><span class="nf">seconds</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+    <span class="nv">logStorageSize</span><span class="p">:</span> <span class="mi">500_000</span><span class="p">,</span>
+    <span class="nv">maximumTotalLogStorageSize</span><span class="p">:</span> <span class="mi">4_000_000</span>
+<span class="p">)</span>
+
+<span class="c1">// Register LogstashLogHandler in the LoggingSystem</span>
+<span class="kt">LoggingSystem</span><span class="o">.</span><span class="nf">bootstrap</span><span class="p">(</span><span class="kt">LogstashLogHandler</span><span class="o">.</span><span class="kd">init</span><span class="p">)</span>
+</code></pre>
+
+<p>Now that the setup of the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> is completed, you can use <code>SwiftLog</code> as usual (also with metadata etc.). </p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">Logging</span>
+
+<span class="k">let</span> <span class="nv">logger</span> <span class="o">=</span> <span class="kt">Logger</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="s">"com.example.WebService"</span><span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="nf">info</span><span class="p">(</span><span class="s">"This is a test!"</span><span class="p">)</span>
+</code></pre>
+<h3 id='setup-logstash-elk-stack' class='heading'>Setup Logstash (ELK stack)</h3>
+
+<p>To actually use the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code>, there&rsquo;s obviously one last step left: Set up a <a href="https://github.com/elastic/logstash">elastic/logstash</a> instance where the logs are sent to. 
+The probably most easy setup of a local Logstash instance is to use <a href="https://github.com/deviantony/docker-elk">docker/elk</a>, which provides the entire Elastic stack (ELK) powered by <a href="https://www.docker.com/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker-compose</a>. The ELK stack allows us to collect, analyze and present the log data and much much more. Please follow the instructions in the <a href="https://github.com/deviantony/docker-elk#readme">README.me</a> of the repository to setup and configure the ELK stack correctly.</p>
+
+<p>Then, we need to configure the Logstash pipeline to accept HTTP input on a certain host and port. This can be done in the <a href="https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf">Logstash pipeline configuration file</a>. 
+Just adapt the <code>input</code> section of the file like this to allow logs to be uploaded locally on port 31311:</p>
+<pre class="highlight plaintext"><code>input {
+    http {
+        host =&gt; "0.0.0.0"
+        port =&gt; 31311
+    }
+}
+</code></pre>
+
+<p>Furthermore, to use the timestamp created by the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> (not the timestamp when the data is actually sent to Logstash), adapt the <code>filter</code> section of the <a href="https://github.com/deviantony/docker-elk/blob/main/logstash/pipeline/logstash.conf">Logstash pipeline configuration file</a> like shown below. The second option eliminates the headers of the HTTP request from the <code><a href="Structs/LogstashLogHandler.html">LogstashLogHandler</a></code> to Logstash, since those headers would also have been saved to the log entry (which are definitly not relevant to us).</p>
+<pre class="highlight plaintext"><code>filter {
+    date {
+        match =&gt; [ "timestamp", "ISO8601" ]
+        locale =&gt; "en_US"       # POSIX
+        target =&gt; "@timestamp"
+    }
+
+    mutate {
+        remove_field =&gt; ["headers"]
+    }
+}
+</code></pre>
+
+<p>Now that the entire setup process is finished, create some log data that is then automatically sent to Logstash (eg. see <a href="#setup-logging">section above</a>). </p>
+
+<p>Since we use the entire ELK stack, not just Logstash, we can use <a href="https://github.com/elastic/kibana">elastic/kibana</a> to instantly visualize the uploaded log data. Access the Kibana web interface (on the respective port) and navigate to <code>Analytics/Discover</code>. Your created log messages (including metadata) should now be displayed here:</p>
+
+<p><img src="https://user-images.githubusercontent.com/25406915/127134981-45e0ce7f-9718-4550-a0b1-e1138e8035e4.png" alt="image"></p>
+
+<p>Congrats, you sent your first logs via swift-log and swift-log-elk to <a href="https://github.com/elastic/logstash">elastic/logstash</a>, saved them in  <a href="https://github.com/elastic/elasticsearch">elastic/elasticsearch</a> and visualized them with <a href="https://github.com/elastic/kibana">elastic/kibana</a>! 🎉</p>
+<h2 id='usage' class='heading'>Usage</h2>
+
+<p>For details on how to use the Logging features of <a href="https://github.com/apple/swift-log/">apple/swift-log</a> exactly, please check out the <a href="https://github.com/apple/swift-log#readme">documentation of swift-log</a>.</p>
+<h2 id='documentation' class='heading'>Documentation</h2>
+
+<p>Take a look at our <a href="https://apodini.github.io/swift-log-elk/">API reference</a> for a full documentation of the package.</p>
+<h2 id='contributing' class='heading'>Contributing</h2>
+
+<p>Contributions to this project are welcome. Please make sure to read the <a href="https://github.com/Apodini/.github/blob/release/CONTRIBUTING.md">contribution guidelines</a> first.</p>
+<h2 id='license' class='heading'>License</h2>
+
+<p>This project is licensed under the MIT License. See <a href="https://github.com/Apodini/swift-log-elk/blob/release/LICENSE">License</a> for more information.</p>
+
+          </div>
+        </section>
+
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/Apodini" target="_blank" rel="external">Philipp Zagar &amp; Paul Schmiedmayer</a>. All rights reserved. (Last updated: 2021-08-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.7</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>

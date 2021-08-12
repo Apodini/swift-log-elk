@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>LogstashLogHandler Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Struct/LogstashLogHandler" class="dashAnchor"></a>
+
+    <a title="LogstashLogHandler Structure Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          LoggingELK Docs
+        </a>
+         (81% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/Apodini/swift-log-elk">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">LoggingELK Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      LogstashLogHandler Structure Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Guides.html">Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../readme.html">README</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/Boxed.html">Boxed</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/FatalErrorUtil.html">FatalErrorUtil</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/FixedWidthInteger.html">FixedWidthInteger</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/Logger.html">Logger</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/Logger/MetadataValue.html">– MetadataValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/Logger/Message.html">– Message</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/TimeAmount.html">TimeAmount</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Functions.html#/s:10LoggingELK10fatalError_4file4lines5NeverOSSyXK_s12StaticStringVSutF">fatalError(_:file:line:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/LogstashLogHandler.html">LogstashLogHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/LogstashLogHandler/Error.html">– Error</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/LogstashLogHandler/LogstashHTTPBody.html">– LogstashHTTPBody</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>LogstashLogHandler</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">LogstashLogHandler</span> <span class="p">:</span> <span class="kt">LogHandler</span></code></pre>
+
+                </div>
+              </div>
+            <p><code>LogstashLogHandler</code> is a simple implementation of <code>LogHandler</code> for directing
+<code>Logger</code> output to Logstash via HTTP requests</p>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV5labelSSvp"></a>
+                    <a name="//apple_ref/swift/Property/label" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV5labelSSvp">label</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The label of the <code>LogHandler</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV8hostnameSSSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/hostname" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV8hostnameSSSgvpZ">hostname</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The host where a Logstash instance is running</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">hostname</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV4portSiSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/port" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV4portSiSgvpZ">port</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The port of the host where a Logstash instance is running</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">port</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV8useHTTPSSbSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/useHTTPS" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV8useHTTPSSbSgvpZ">useHTTPS</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Specifies if the HTTP connection to Logstash should be encrypted via TLS (so HTTPS instead of HTTP)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">useHTTPS</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV14eventLoopGroup3NIO05EventgH0_pSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/eventLoopGroup" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV14eventLoopGroup3NIO05EventgH0_pSgvpZ">eventLoopGroup</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>EventLoopGroup</code> which is used to create the <code>HTTPClient</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">eventLoopGroup</span><span class="p">:</span> <span class="kt">EventLoopGroup</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV24backgroundActivityLogger0A00H0VSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/backgroundActivityLogger" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV24backgroundActivityLogger0A00H0VSgvpZ">backgroundActivityLogger</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Used to log background activity of the <code>LogstashLogHandler</code> and <code>HTTPClient</code>
+This logger MUST be created BEFORE the <code>LoggingSystem</code> is bootstrapped, else it results in an infinte recusion!</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">backgroundActivityLogger</span><span class="p">:</span> <span class="kt">Logger</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV14uploadInterval3NIO10TimeAmountVSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/uploadInterval" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV14uploadInterval3NIO10TimeAmountVSgvpZ">uploadInterval</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Represents a certain amount of time which serves as a delay between the triggering of the uploading to Logstash</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">uploadInterval</span><span class="p">:</span> <span class="kt">TimeAmount</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV14logStorageSizeSiSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/logStorageSize" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV14logStorageSizeSiSgvpZ">logStorageSize</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Specifies how large the log storage <code>ByteBuffer</code> must be at least</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">logStorageSize</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV012maximumTotalD11StorageSizeSiSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/maximumTotalLogStorageSize" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV012maximumTotalD11StorageSizeSiSgvpZ">maximumTotalLogStorageSize</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Specifies how large the log storage <code>ByteBuffer</code> with all the current uploading buffers can be at the most</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">maximumTotalLogStorageSize</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV10httpClient15AsyncHTTPClient0I0CSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/httpClient" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV10httpClient15AsyncHTTPClient0I0CSgvpZ">httpClient</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>HTTPClient</code> which is used to create the <code>HTTPClient.Request</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">httpClient</span><span class="p">:</span> <span class="kt">HTTPClient</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV11httpRequest15AsyncHTTPClient0I0C0G0VSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/httpRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV11httpRequest15AsyncHTTPClient0I0C0G0VSgvpZ">httpRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>HTTPClient.Request</code> which stays consistent (except the body) over all uploadings to Logstash</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd"><a href="../Classes/Boxed.html">@Boxed</a></span>
+<span class="kd">static</span> <span class="k">var</span> <span class="nv">httpRequest</span><span class="p">:</span> <span class="kt">HTTPClient</span><span class="o">.</span><span class="kt">Request</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV10byteBuffer3NIO04ByteG0VSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/byteBuffer" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV10byteBuffer3NIO04ByteG0VSgvpZ">byteBuffer</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The log storage byte buffer which serves as a cache of the log data entires</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd"><a href="../Classes/Boxed.html">@Boxed</a></span>
+<span class="kd">static</span> <span class="k">var</span> <span class="nv">byteBuffer</span><span class="p">:</span> <span class="kt">ByteBuffer</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV14byteBufferLock21NIOConcurrencyHelpers09ConditionH0CySbGvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/byteBufferLock" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV14byteBufferLock21NIOConcurrencyHelpers09ConditionH0CySbGvpZ">byteBufferLock</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Provides thread-safe access to the log storage byte buffer</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">let</span> <span class="nv">byteBufferLock</span><span class="p">:</span> <span class="kt">ConditionLock</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV9semaphoreSo012OS_dispatch_F0CvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/semaphore" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV9semaphoreSo012OS_dispatch_F0CvpZ">semaphore</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Semaphore to adhere to the maximum memory limit</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">let</span> <span class="nv">semaphore</span><span class="p">:</span> <span class="kt">DispatchSemaphore</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV16semaphoreCounterSivpZ"></a>
+                    <a name="//apple_ref/swift/Variable/semaphoreCounter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV16semaphoreCounterSivpZ">semaphoreCounter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Manual counter of the semaphore (since no access to the internal one of the semaphore)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd"><a href="../Classes/Boxed.html">@Boxed</a></span>
+<span class="kd">static</span> <span class="k">var</span> <span class="nv">semaphoreCounter</span><span class="p">:</span> <span class="kt">Int</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV19totalByteBufferSizeSiSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/totalByteBufferSize" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV19totalByteBufferSizeSiSgvpZ">totalByteBufferSize</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Keeps track of how much memory is allocated in total</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd"><a href="../Classes/Boxed.html">@Boxed</a></span>
+<span class="kd">static</span> <span class="k">var</span> <span class="nv">totalByteBufferSize</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV10uploadTask3NIO08RepeatedG0CSgvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/uploadTask" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV10uploadTask3NIO08RepeatedG0CSgvpZ">uploadTask</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Created during scheduling of the upload function to Logstash, provides the ability to cancel the uploading task</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd"><a href="../Classes/Boxed.html">@Boxed</a></span>
+<span class="kd">private(set)</span> <span class="kd">static</span> <span class="k">var</span> <span class="nv">uploadTask</span><span class="p">:</span> <span class="kt">RepeatedTask</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV8logLevel0A06LoggerV0G0Ovp"></a>
+                    <a name="//apple_ref/swift/Property/logLevel" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV8logLevel0A06LoggerV0G0Ovp">logLevel</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The default <code>Logger.Level</code> of the <code>LogstashLogHandler</code>
+Logging entries below this <code>Logger.Level</code> won&rsquo;t get logged at all</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">logLevel</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Level</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV8metadataSDySS0A06LoggerV13MetadataValueOGvp"></a>
+                    <a name="//apple_ref/swift/Property/metadata" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV8metadataSDySS0A06LoggerV13MetadataValueOGvp">metadata</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Holds the <code>Logger.Metadata</code> of the <code>LogstashLogHandler</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">metadata</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV11metadataKey0A06LoggerV13MetadataValueOSgSS_tcip"></a>
+                    <a name="//apple_ref/swift/Method/subscript(metadataKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV11metadataKey0A06LoggerV13MetadataValueOSgSS_tcip">subscript(metadataKey:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Convenience subscript to get and set <code>Logger.Metadata</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">subscript</span><span class="p">(</span><span class="n">metadataKey</span> <span class="nv">metadataKey</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span><span class="o">.</span><span class="kt">Value</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV5labelACSS_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(label:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV5labelACSS_tcfc">init(label:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV5setup8hostname4port8useHTTPS14eventLoopGroup24backgroundActivityLogger14uploadInterval14logStorageSize012maximumTotaldtU0ySS_SiSb3NIO05EventlM0_p0A00P0VAM10TimeAmountVS2itFZ"></a>
+                    <a name="//apple_ref/swift/Method/setup(hostname:port:useHTTPS:eventLoopGroup:backgroundActivityLogger:uploadInterval:logStorageSize:maximumTotalLogStorageSize:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV5setup8hostname4port8useHTTPS14eventLoopGroup24backgroundActivityLogger14uploadInterval14logStorageSize012maximumTotaldtU0ySS_SiSb3NIO05EventlM0_p0A00P0VAM10TimeAmountVS2itFZ">setup(hostname:<wbr>port:<wbr>useHTTPS:<wbr>eventLoopGroup:<wbr>backgroundActivityLogger:<wbr>uploadInterval:<wbr>logStorageSize:<wbr>maximumTotalLogStorageSize:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Setup of the <code>LogstashLogHandler</code>, need to be called once before <code>LoggingSystem.bootstrap(...)</code> is called</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">setup</span><span class="p">(</span><span class="nv">hostname</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                         <span class="nv">port</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span>
+                         <span class="nv">useHTTPS</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span>
+                         <span class="nv">eventLoopGroup</span><span class="p">:</span> <span class="kt">EventLoopGroup</span> <span class="o">=</span> <span class="kt">MultiThreadedEventLoopGroup</span><span class="p">(</span><span class="nv">numberOfThreads</span><span class="p">:</span> <span class="p">(</span><span class="kt">System</span><span class="o">.</span><span class="n">coreCount</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">?</span> <span class="kt">System</span><span class="o">.</span><span class="n">coreCount</span> <span class="o">/</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">1</span><span class="p">),</span>
+                         <span class="nv">backgroundActivityLogger</span><span class="p">:</span> <span class="kt">Logger</span> <span class="o">=</span> <span class="kt">Logger</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="s">"backgroundActivity-logstashHandler"</span><span class="p">),</span>
+                         <span class="nv">uploadInterval</span><span class="p">:</span> <span class="kt">TimeAmount</span> <span class="o">=</span> <span class="kt">TimeAmount</span><span class="o">.</span><span class="nf">seconds</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+                         <span class="nv">logStorageSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">524_288</span><span class="p">,</span>
+                         <span class="nv">maximumTotalLogStorageSize</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">4_194_304</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Logging10LogHandlerP3log5level7message8metadata6source4file8function4lineyAA6LoggerV5LevelO_AM7MessageVSDySSAM13MetadataValueOGSgS3SSutF"></a>
+                    <a name="//apple_ref/swift/Method/log(level:message:metadata:source:file:function:line:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Logging10LogHandlerP3log5level7message8metadata6source4file8function4lineyAA6LoggerV5LevelO_AM7MessageVSDySSAM13MetadataValueOGSgS3SSutF">log(level:<wbr>message:<wbr>metadata:<wbr>source:<wbr>file:<wbr>function:<wbr>line:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The main log function of the <code>LogstashLogHandler</code>
+Merges the <code>Logger.Metadata</code>, encodes the log entry to a propertly formatted HTTP body
+which is then cached in the log store <code>ByteBuffer</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">log</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Level</span><span class="p">,</span>            <span class="c1">// swiftlint:disable:this function_parameter_count function_body_length</span>
+                <span class="nv">message</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Message</span><span class="p">,</span>
+                <span class="nv">metadata</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span><span class="p">?,</span>
+                <span class="nv">source</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                <span class="nv">file</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                <span class="nv">function</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                <span class="nv">line</span><span class="p">:</span> <span class="kt">UInt</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV5ErrorO"></a>
+                    <a name="//apple_ref/swift/Enum/Error" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV5ErrorO">Error</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="../Structs/LogstashLogHandler/Error.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">enum</span> <span class="kt">Error</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV0C8HTTPBodyV"></a>
+                    <a name="//apple_ref/swift/Struct/LogstashHTTPBody" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV0C8HTTPBodyV">LogstashHTTPBody</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A struct used to encode the <code>Logger.Level</code>, <code>Logger.Message</code>, <code>Logger.Metadata</code>, and a timestamp
+which is then sent to Logstash</p>
+
+                        <a href="../Structs/LogstashLogHandler/LogstashHTTPBody.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">LogstashHTTPBody</span> <span class="p">:</span> <span class="kt">Codable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV11jsonEncoder33_ED9B1FDB053CB9A9B90A405D61AEA66FLL10Foundation11JSONEncoderCvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/jsonEncoder" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV11jsonEncoder33_ED9B1FDB053CB9A9B90A405D61AEA66FLL10Foundation11JSONEncoderCvpZ">jsonEncoder</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>JSONEncoder</code> used to encode the <code><a href="../Structs/LogstashLogHandler/LogstashHTTPBody.html">LogstashHTTPBody</a></code> to JSON</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">private</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">jsonEncoder</span><span class="p">:</span> <span class="kt">JSONEncoder</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV17createHTTPRequest15AsyncHTTPClient0I0C7RequestVyFZ"></a>
+                    <a name="//apple_ref/swift/Method/createHTTPRequest()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV17createHTTPRequest15AsyncHTTPClient0I0C7RequestVyFZ">createHTTPRequest()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates the HTTP request which stays constant during the entire lifetime of the <code>LogstashLogHandler</code>
+Sets some default headers, eg. a dynamically adjusted &ldquo;Keep-Alive&rdquo; header</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="kd">func</span> <span class="nf">createHTTPRequest</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">HTTPClient</span><span class="o">.</span><span class="kt">Request</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV06encodeD4Data5level7message8metadata10Foundation0G0VSg0A06LoggerV5LevelO_AN7MessageVSDySSAN13MetadataValueOGtF"></a>
+                    <a name="//apple_ref/swift/Method/encodeLogData(level:message:metadata:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV06encodeD4Data5level7message8metadata10Foundation0G0VSg0A06LoggerV5LevelO_AN7MessageVSDySSAN13MetadataValueOGtF">encodeLogData(level:<wbr>message:<wbr>metadata:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encodes the <code>Logger.Level</code>, <code>Logger.Message</code>, <code>Logger.Metadata</code>, and
+an automatically created timestamp to a HTTP body in the JSON format</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">encodeLogData</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Level</span><span class="p">,</span>
+                   <span class="nv">message</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Message</span><span class="p">,</span>
+                   <span class="nv">metadata</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Data</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV9timestamp33_ED9B1FDB053CB9A9B90A405D61AEA66FLLSSvp"></a>
+                    <a name="//apple_ref/swift/Property/timestamp" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV9timestamp33_ED9B1FDB053CB9A9B90A405D61AEA66FLLSSvp">timestamp</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Uses the <code>ISO8601DateFormatter</code> to create the timstamp of the log entry</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">private</span> <span class="k">var</span> <span class="nv">timestamp</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV13dateFormatter33_ED9B1FDB053CB9A9B90A405D61AEA66FLLSo013NSISO8601DateG0CvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/dateFormatter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV13dateFormatter33_ED9B1FDB053CB9A9B90A405D61AEA66FLLSo013NSISO8601DateG0CvpZ">dateFormatter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An <code>ISO8601DateFormatter</code> used to format the timestamp of the log entry in an ISO8601 conformant fashion</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">private</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">dateFormatter</span><span class="p">:</span> <span class="kt">ISO8601DateFormatter</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV13mergeMetadata06passedG04file8function4lineSDySS0A06LoggerV0G5ValueOGANSg_S2SSutF"></a>
+                    <a name="//apple_ref/swift/Method/mergeMetadata(passedMetadata:file:function:line:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV13mergeMetadata06passedG04file8function4lineSDySS0A06LoggerV0G5ValueOGANSg_S2SSutF">mergeMetadata(passedMetadata:<wbr>file:<wbr>function:<wbr>line:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Merges the <code>Logger.Metadata</code> passed via the <code>.log()</code> function call as well
+as the metadata set directly on the logger (eg. via <code>logger[metadatakey: &quot;test&quot;] = &quot;test&quot;</code></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">mergeMetadata</span><span class="p">(</span><span class="nv">passedMetadata</span><span class="p">:</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span><span class="p">?,</span>
+                   <span class="nv">file</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                   <span class="nv">function</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+                   <span class="nv">line</span><span class="p">:</span> <span class="kt">UInt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Logger</span><span class="o">.</span><span class="kt">Metadata</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV17conciseSourcePath33_8E61F582C92B5224642D443C17E68023LLyS2SF"></a>
+                    <a name="//apple_ref/swift/Method/conciseSourcePath(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV17conciseSourcePath33_8E61F582C92B5224642D443C17E68023LLyS2SF">conciseSourcePath(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Splits the source code file path so that only the relevant path is logged</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">conciseSourcePath</span><span class="p">(</span><span class="n">_</span> <span class="nv">path</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV14formatLocation33_8E61F582C92B5224642D443C17E68023LL4file8function4lineS2S_SSSutF"></a>
+                    <a name="//apple_ref/swift/Method/formatLocation(file:function:line:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV14formatLocation33_8E61F582C92B5224642D443C17E68023LL4file8function4lineS2S_SSSutF">formatLocation(file:<wbr>function:<wbr>line:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Formats the code location properly</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">formatLocation</span><span class="p">(</span><span class="nv">file</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">function</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">line</span><span class="p">:</span> <span class="kt">UInt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV18scheduleUploadTask12initialDelay3NIO08RepeatedH0CAF10TimeAmountV_tFZ"></a>
+                    <a name="//apple_ref/swift/Method/scheduleUploadTask(initialDelay:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV18scheduleUploadTask12initialDelay3NIO08RepeatedH0CAF10TimeAmountV_tFZ">scheduleUploadTask(initialDelay:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Schedules the <code>uploadLogData</code> function with a certain <code>TimeAmount</code> as <code>initialDelay</code> and <code>delay</code> (delay between repeating the task)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="kd">func</span> <span class="nf">scheduleUploadTask</span><span class="p">(</span><span class="nv">initialDelay</span><span class="p">:</span> <span class="kt">TimeAmount</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">RepeatedTask</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:10LoggingELK18LogstashLogHandlerV06uploadD4Datayy3NIO12RepeatedTaskCSgFZ"></a>
+                    <a name="//apple_ref/swift/Method/uploadLogData(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:10LoggingELK18LogstashLogHandlerV06uploadD4Datayy3NIO12RepeatedTaskCSgFZ">uploadLogData(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Function which uploads the stored log data in the <code>ByteBuffer</code> to Logstash
+Never called directly, its only scheduled via the <code>scheduleUploadTask</code> function
+This function is thread-safe and designed to only block the stored log data <code>ByteBuffer</code>
+for a short amount of time (the time it takes to duplicate this bytebuffer). Then, the &ldquo;original&rdquo;
+stored log data <code>ByteBuffer</code> is freed and the lock is lifted</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="kd">func</span> <span class="nf">uploadLogData</span><span class="p">(</span><span class="n">_</span> <span class="nv">task</span><span class="p">:</span> <span class="kt">RepeatedTask</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/Apodini" target="_blank" rel="external">Philipp Zagar &amp; Paul Schmiedmayer</a>. All rights reserved. (Last updated: 2021-08-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.7</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
