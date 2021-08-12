@@ -57,29 +57,29 @@ import Logging
 import LoggingELK
 ```
 
-Create the `LogstashLogHandler` with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:
+Setup the `LogstashLogHandler` with the appropriate configuration and register the to be used logging backend once (!) during the lifetime of the application:
 
 ```swift
-LoggingSystem.bootstrap { label in
-    LogstashLogHandler(
-        label: label,
-        hostname: "0.0.0.0",
-        port: 31311
-    )
-}
+// Setup of LogstashLogHandler
+LogstashLogHandler.setup(hostname: "0.0.0.0", port: 31311)
+
+// Register LogstashLogHandler in the LoggingSystem
+LoggingSystem.bootstrap(LogstashLogHandler.init)
 ```
+
+**Important:** Setup the `LogstashLogHandler` before registering it in the `LoggingSystem`!
 
 Furthermore, it's possible to register multiple logging backends. An option would be to send the logs to Logstash as well as print them to console:
 
 ```swift
+// Setup of LogstashLogHandler
+LogstashLogHandler.setup(hostname: "0.0.0.0", port: 31311)
+
+// Register LogHandlers in the LoggingSystem
 LoggingSystem.bootstrap { label in
     MultiplexLogHandler(
         [
-            LogstashLogHandler(
-                label: label,
-                hostname: "0.0.0.0",
-                port: 31311
-            ),
+            LogstashLogHandler(label: label),
             StreamLogHandler.standardOutput(label: label)
         ]
     ) 
@@ -93,19 +93,20 @@ The `LogstashLogHandler` can also be configured beyond the standard configuratio
 Why at least twice as large? The process of allocating temporary buffers could possibly be repeated, if the log storage runs full during uploading of "old" log data. A possible scenario is an environment, where the network conncection to Logstash is really slow and therefore the uploading takes long. This process could repeat itself over and over again until the `maximumTotalLogStorageSize` is reached. Then, a new logging call blocks until enought memory space is available again, achieved through a partial completed uploading of log data, resulting in freed temporary buffers. In practice, approaching the `maximumTotalLogStorageSize` should basically never happen, except in very resource restricted environments.
 
 ```swift
-LoggingSystem.bootstrap { label in
-    LogstashLogHandler(
-        label: "logstash",
-        hostname: "0.0.0.0",
-        port: 31311,
-        useHTTPS: false,
-        eventLoopGroup: eventLoopGroup,
-        backgroundActivityLogger: logger,
-        uploadInterval: TimeAmount.seconds(3),
-        logStorageSize: 524_288,    // 512kB
-        maximumTotalLogStorageSize: 2_097_152       // 2MB
-    )
-}
+// Setup of LogstashLogHandler
+LogstashLogHandler.setup(
+    hostname: "0.0.0.0",
+    port: 31311,
+    useHTTPS: false,
+    eventLoopGroup: eventLoopGroup,
+    backgroundActivityLogger: logger,
+    uploadInterval: TimeAmount.seconds(5),
+    logStorageSize: 500_000,
+    maximumTotalLogStorageSize: 4_000_000
+)
+
+// Register LogstashLogHandler in the LoggingSystem
+LoggingSystem.bootstrap(LogstashLogHandler.init)
 ```
 
 Now that the setup of the `LogstashLogHandler` is completed, you can use `SwiftLog` as usual (also with metadata etc.). 
