@@ -33,18 +33,21 @@ extension LogstashLogHandler {
     /// for a short amount of time (the time it takes to duplicate this bytebuffer). Then, the "original"
     /// stored log data `ByteBuffer` is freed and the lock is lifted
     static func uploadLogData(_ task: RepeatedTask? = nil) {       // swiftlint:disable:this cyclomatic_complexity function_body_length
-        guard let _ = Self.byteBuffer,
-              let _ = Self.totalByteBufferSize,
-              let maximumTotalLogStorageSize = Self.maximumTotalLogStorageSize,
-              let eventLoopGroup = Self.eventLoopGroup,
-              let httpClient = Self.httpClient,
-              let hostname = Self.hostname,
-              let port = Self.port else {
+        guard let _ = Self.byteBuffer else {
             fatalError(Error.notYetSetup.rawValue)
         }
         
         guard Self.byteBuffer?.readableBytes != 0 else {
             return
+        }
+        
+        guard let _ = Self.totalByteBufferSize,
+              let maximumTotalLogStorageSize = Self.maximumTotalLogStorageSize,
+              let eventLoopGroup = Self.eventLoopGroup,
+              let httpClient = Self.httpClient,
+              let hostname = Self.hostname,
+              let port = Self.port else {
+                  fatalError(Error.notYetSetup.rawValue)
         }
         
         // If total byte buffer size is exceeded, wait until the size is decreased again
