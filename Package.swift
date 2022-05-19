@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.6
 
 import PackageDescription
 
@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "swift-log-elk",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v10_15),
+        .iOS(.v12)
     ],
     products: [
         .library(name: "LoggingELK", targets: ["LoggingELK"])
