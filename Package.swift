@@ -7,7 +7,7 @@ let package = Package(
     name: "swift-log-elk",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v12)
+        .iOS(.v13)
     ],
     products: [
         .library(name: "LoggingELK", targets: ["LoggingELK"])
