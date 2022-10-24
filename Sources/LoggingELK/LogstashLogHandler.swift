@@ -13,6 +13,7 @@ import AsyncHTTPClient
 
 /// `LogstashLogHandler` is a simple implementation of `LogHandler` for directing
 /// `Logger` output to Logstash via HTTP requests
+@available(iOS 13.0, *)
 public struct LogstashLogHandler: LogHandler {
     /// The label of the `LogHandler`
     let label: String
