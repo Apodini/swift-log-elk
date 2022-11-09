@@ -91,6 +91,7 @@ public struct LogstashLogHandler: LogHandler {
     public static func setup(hostname: String,
                              port: Int,
                              useHTTPS: Bool = false,
+                             authorization: Authorizable? = nil,
                              eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount != 1) ? System.coreCount / 2 : 1),
                              backgroundActivityLogger: Logger = Logger(label: "backgroundActivity-logstashHandler"),
                              uploadInterval: TimeAmount = TimeAmount.seconds(3),
@@ -103,6 +104,7 @@ public struct LogstashLogHandler: LogHandler {
         Self.hostname = hostname
         Self.port = port
         Self.useHTTPS = useHTTPS
+        Self.authorization = authorization
         Self.eventLoopGroup = eventLoopGroup
         Self.backgroundActivityLogger = backgroundActivityLogger
         Self.uploadInterval = uploadInterval
