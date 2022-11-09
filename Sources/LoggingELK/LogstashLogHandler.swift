@@ -22,6 +22,8 @@ public struct LogstashLogHandler: LogHandler {
     static var port: Int?
     /// Specifies if the HTTP connection to Logstash should be encrypted via TLS (so HTTPS instead of HTTP)
     static var useHTTPS: Bool?
+    /// Specifies  the authorization schema for the HTTP request
+    static var authorization: Authorizable?
     /// The `EventLoopGroup` which is used to create the `HTTPClient`
     static var eventLoopGroup: EventLoopGroup?
     /// Used to log background activity of the `LogstashLogHandler` and `HTTPClient`
