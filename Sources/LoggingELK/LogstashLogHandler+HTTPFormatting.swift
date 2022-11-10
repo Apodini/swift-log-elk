@@ -54,6 +54,10 @@ extension LogstashLogHandler {
         }
 
         // Set headers that always stay consistent over all requests
+        if let authorization = self.authorization {
+            httpRequest.headers.add(name: "Authorization", value: authorization.value)
+        }
+        
         httpRequest.headers.add(name: "Content-Type", value: "application/json")
         httpRequest.headers.add(name: "Accept", value: "application/json")
         // Keep-alive header to keep the connection open
