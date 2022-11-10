@@ -38,6 +38,16 @@ public struct Authorization: Authorizable {
     /// Token string, which should generated outside
     let token: String
     
+    /// Initialize a new authroization structure to provide access to
+    /// some protected url
+    /// - Parameters:
+    ///   - type: authorization type, e.g. `basic`, `bearer`, ...
+    ///   - token: generated authorization token
+    public init(type: AuthorizationType, token: String) {
+        self.type = type
+        self.token = token
+    }
+    
     /// A string concatenated from type name and token itself for authroization header field
     public var value: String {
         return "\(type.name) \(token)"
